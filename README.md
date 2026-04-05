@@ -328,6 +328,84 @@ Articles with `status: stable` are skipped by `wiki lint`.
 
 ---
 
+## Obsidian as a viewer
+
+Point Obsidian at `~/wiki/` (the vault root, not the `wiki/` subdirectory). The YAML
+frontmatter is natively understood — `tags:` and `status:` appear as filterable properties,
+and the graph view shows article clusters via their cross-links.
+
+### Recommended settings
+
+- **Files & Links → Excluded files**: add `raw/`, `logs/`, `outputs/` to keep the file
+  list focused on wiki articles and queue files.
+- **Files & Links → Default new link format**: set to `Relative path from vault root` so
+  any links you create manually match the format the Wiki AI uses.
+
+Add `.obsidian/` to the vault's `.gitignore` so Obsidian's workspace config doesn't
+pollute commits:
+
+``` bash
+echo '.obsidian/' >> ~/wiki/.gitignore
+```
+
+Note: `wiki init` adds this automatically for new vaults.
+
+### Dataview plugin
+
+The [Dataview plugin](https://github.com/blacksmithgu/obsidian-dataview) lets you query
+frontmatter like a database. Drop a `dashboard.md` in the vault root:
+
+```` markdown
+# Wiki Dashboard
+
+## Needs review
+``` dataview
+TABLE tags, file.mtime AS "Modified"
+FROM "wiki"
+WHERE status = "needs-review"
+SORT file.mtime DESC
+```
+
+## Recent drafts
+``` dataview
+TABLE tags
+FROM "wiki"
+WHERE status = "draft"
+SORT file.mtime DESC
+LIMIT 20
+```
+
+## Open lint cases
+``` dataview
+LIST file.link
+FROM "queue/lint/open"
+SORT file.mtime DESC
+```
+
+## Session log queue
+``` dataview
+LIST file.link
+FROM "queue/session-log/open"
+SORT file.mtime DESC
+```
+
+## By tag
+``` dataview
+TABLE rows.file.link AS "Articles"
+FROM "wiki"
+WHERE status != "stable"
+FLATTEN tags AS tag
+GROUP BY tag
+```
+```
+````
+
+**One incompatibility**: Obsidian's editor will let you edit articles directly, which is
+fine for frontmatter tweaks. Edited content won't be re-processed by the compile pipeline
+and won't affect `raw/.manifest`. That's intentional — the wiki is the source of truth.
+
+---
+
 ## Multi-user (*untested*)
 
 Set `resolver.mode = "branch"` in config. The Resolver creates a branch and opens a PR

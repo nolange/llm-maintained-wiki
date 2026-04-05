@@ -1,6 +1,7 @@
 """wiki enhance — surface opportunities to grow and connect the wiki."""
 
 import logging
+import random
 from datetime import date
 from pathlib import Path
 
@@ -21,12 +22,20 @@ def _load_prompt(name: str) -> str:
 # Data collection
 # ---------------------------------------------------------------------------
 
-def _collect_frontmatter_summary(wiki_dir: Path) -> str:
-    """Return a compact frontmatter listing for all articles."""
+def _collect_frontmatter_summary(wiki_dir: Path, max_articles: int | None = None) -> str:
+    """Return a compact frontmatter listing, randomly sampled to max_articles if set."""
+    all_paths = sorted(
+        p for p in wiki_dir.glob("*.md") if not p.name.startswith("_")
+    )
+    if max_articles is not None and len(all_paths) > max_articles:
+        paths = random.sample(all_paths, max_articles)
+        sampled = True
+    else:
+        paths = all_paths
+        sampled = False
+
     lines = []
-    for md_path in sorted(wiki_dir.glob("*.md")):
-        if md_path.name.startswith("_"):
-            continue
+    for md_path in sorted(paths):
         try:
             meta, _ = frontmatter.read(md_path)
         except Exception:
@@ -34,28 +43,31 @@ def _collect_frontmatter_summary(wiki_dir: Path) -> str:
         tags = meta.get("tags", [])
         status = meta.get("status", "unknown")
         lines.append(f"- **{md_path.name}** — tags: {tags}, status: {status}")
-    return "\n".join(lines) if lines else "(no articles)"
+
+    if not lines:
+        return "(no articles)"
+    if sampled:
+        lines.append(
+            f"\n_(showing {max_articles} of {len(all_paths)} articles — sampled randomly)_"
+        )
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-def _build_enhance_prompt(vault: Path, index_content: str, frontmatter_summary: str) -> str:
+def _build_enhance_prompt(vault: Path, _unused: str, frontmatter_summary: str) -> str:
     instructions = _load_prompt("enhance")
     today = date.today().isoformat()
-    output_path = vault / "outputs" / f"enhance-{today}.md"
+    output_path = f"outputs/enhance-{today}.md"
 
     lines = [
         instructions,
         "",
-        f"## Vault root\n\n{vault}",
-        "",
         f"## Today's date\n\n{today}",
         "",
-        "## Wiki Index (`wiki/_index.md`)",
-        "",
-        index_content.strip(),
+        "## Wiki Index\n\n@wiki/_index.md",
         "",
         "## Article Frontmatter Summary",
         "",
@@ -75,7 +87,10 @@ def _build_enhance_prompt(vault: Path, index_content: str, frontmatter_summary: 
 # Main entry point
 # ---------------------------------------------------------------------------
 
-def enhance(cfg: Config, dry_run: bool = False) -> None:
+_DEFAULT_MAX_ARTICLES = 50
+
+
+def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX_ARTICLES) -> None:
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
     index_path = wiki_dir / "_index.md"
@@ -88,14 +103,18 @@ def enhance(cfg: Config, dry_run: bool = False) -> None:
         print("Wiki index not found. Run `wiki compile` first.")
         return
 
-    index_content = index_path.read_text(encoding="utf-8")
-    frontmatter_summary = _collect_frontmatter_summary(wiki_dir)
+    all_articles = [p for p in (wiki_dir).glob("*.md") if not p.name.startswith("_")]
+    total = len(all_articles)
+    frontmatter_summary = _collect_frontmatter_summary(wiki_dir, max_articles)
 
     today = date.today().isoformat()
     output_path = vault / "outputs" / f"enhance-{today}.md"
 
-    print(f"Generating enhancement report...")
-    prompt = _build_enhance_prompt(vault, index_content, frontmatter_summary)
+    if total > max_articles:
+        print(f"Generating enhancement report ({max_articles}/{total} articles sampled)...")
+    else:
+        print(f"Generating enhancement report ({total} article(s))...")
+    prompt = _build_enhance_prompt(vault, "", frontmatter_summary)
     llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
 
     if not dry_run:

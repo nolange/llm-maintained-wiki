@@ -29,12 +29,12 @@ def cmd_compile(args: argparse.Namespace, cfg: config.Config) -> None:
 
 def cmd_lint(args: argparse.Namespace, cfg: config.Config) -> None:
     from .lint import lint
-    lint(cfg, dry_run=args.dry_run)
+    lint(cfg, dry_run=args.dry_run, max_calls=args.max_calls)
 
 
 def cmd_enhance(args: argparse.Namespace, cfg: config.Config) -> None:
     from .enhance import enhance
-    enhance(cfg, dry_run=args.dry_run)
+    enhance(cfg, dry_run=args.dry_run, max_articles=args.max_articles)
 
 
 def cmd_ask(args: argparse.Namespace, cfg: config.Config) -> None:
@@ -176,9 +176,25 @@ def main() -> None:
     _add_dry_run(compile_p)
 
     lint_p = sub.add_parser("lint", help="Analyse wiki for inconsistencies and produce case files.")
+    lint_p.add_argument(
+        "-m", "--max-calls",
+        type=int,
+        default=5,
+        dest="max_calls",
+        metavar="N",
+        help="Max LLM calls per run — clusters are sampled randomly (default: 5).",
+    )
     _add_dry_run(lint_p)
 
     enhance_p = sub.add_parser("enhance", help="Suggest new articles, cross-links, and topic gaps.")
+    enhance_p.add_argument(
+        "-m", "--max-articles",
+        type=int,
+        default=50,
+        dest="max_articles",
+        metavar="N",
+        help="Max articles included in the prompt — sampled randomly (default: 50).",
+    )
     _add_dry_run(enhance_p)
 
     ask_p = sub.add_parser("ask", help="Answer a question using the wiki.")

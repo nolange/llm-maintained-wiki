@@ -101,27 +101,34 @@ def _build_agent_prompt(
 ) -> str:
     instructions = _load_prompt("compile")
 
-    lines = [instructions, "", f"## Vault root\n\n{vault}", ""]
+    # All paths are relative to vault (which is the working directory).
+    def rel(p: Path) -> str:
+        try:
+            return str(p.relative_to(vault))
+        except ValueError:
+            return str(p)
+
+    lines = [instructions, ""]
 
     if readable_raw:
         lines.append("## Source files to process\n")
         for original, readable in readable_raw:
             if readable == original:
-                lines.append(f"- {readable}")
+                lines.append(f"- @{rel(readable)}")
             else:
-                lines.append(f"- {readable}  (extracted from {original.name})")
+                lines.append(f"- @{rel(readable)}  (extracted from {original.name})")
         lines.append("")
 
     if session_paths:
         lines.append("## Session-log entries to process\n")
         for p in session_paths:
-            lines.append(f"- {p}")
+            lines.append(f"- @{rel(p)}")
         lines.append("")
 
     if new_asset_paths:
         lines.append("## Assets needing sidecars\n")
         for p in new_asset_paths:
-            lines.append(f"- {p}")
+            lines.append(f"- @{rel(p)}")
         lines.append("")
 
     return "\n".join(lines)

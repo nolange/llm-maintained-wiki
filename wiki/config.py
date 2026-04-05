@@ -40,7 +40,21 @@ def load(config_path: Path | None = None) -> Config:
         user_name=user.get("name", "user"),
         resolver_mode=resolver.get("mode", "direct"),
         llm_backend=backend,
-        llm_path=backend_cfg.get("path", "claude"),
+        llm_path=_resolve_exe(backend_cfg.get("path", "claude")),
         llm_args=backend_cfg.get("args", ["-p"]),
         compile_max_files=compile_cfg.get("max_files", 10),
     )
+
+
+def _resolve_exe(path: str) -> str:
+    """Expand ~ and home-relative paths (e.g. '.local/bin/claude' → '~/.local/bin/claude')."""
+    if not path:
+        return path
+    if "/" not in path:
+        return path  # bare name — resolved via PATH
+    p = Path(path)
+    if path.startswith("~"):
+        return str(p.expanduser())
+    if not p.is_absolute():
+        return str(Path.home() / p)  # .local/bin/claude → /home/user/.local/bin/claude
+    return path

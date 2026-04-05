@@ -67,40 +67,42 @@ def _select_articles(wiki_dir: Path, question: str) -> list[Path]:
 def _build_ask_prompt(
     vault: Path,
     question: str,
-    index_content: str,
     article_paths: list[Path],
     output_path: Path | None = None,
 ) -> str:
     instructions = _load_prompt("ask")
     today = date.today().isoformat()
 
+    def rel(p: Path) -> str:
+        try:
+            return str(p.relative_to(vault))
+        except ValueError:
+            return str(p)
+
     lines = [
         instructions,
-        "",
-        f"## Vault root\n\n{vault}",
         "",
         f"## Today's date\n\n{today}",
         "",
         f"## Question\n\n{question}",
         "",
-        "## Wiki Index (`wiki/_index.md`)",
-        "",
-        index_content.strip(),
+        "## Wiki Index\n\n@wiki/_index.md",
         "",
     ]
 
     if article_paths:
         lines.append("## Pre-selected articles\n")
         for p in article_paths:
-            lines.append(f"- {p}")
+            lines.append(f"- @{rel(p)}")
         lines.append("")
 
     lines.append("## Instructions")
     lines.append("")
     lines.append("Read the pre-selected articles and answer the question.")
     if output_path:
+        rel_out = rel(output_path)
         lines.append(
-            f"If the answer is substantial (more than a few sentences), also write it to: `{output_path}`"
+            f"If the answer is substantial (more than a few sentences), also write it to: `{rel_out}`"
         )
     lines.append("")
     lines.append("Distinguish clearly between what the wiki states, what is inferred, and what is not covered.")
@@ -112,8 +114,8 @@ def _build_ask_prompt(
 # Main entry points
 # ---------------------------------------------------------------------------
 
-def _prepare(cfg: Config, question: str) -> tuple[Path, str, list[Path], Path] | None:
-    """Shared setup for both ask modes. Returns (vault, index_content, articles, output_path)."""
+def _prepare(cfg: Config, question: str) -> tuple[Path, list[Path], Path] | None:
+    """Shared setup for both ask modes. Returns (vault, articles, output_path)."""
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
     index_path = wiki_dir / "_index.md"
@@ -126,14 +128,13 @@ def _prepare(cfg: Config, question: str) -> tuple[Path, str, list[Path], Path] |
         print("Wiki index not found. Run `wiki compile` first.")
         return None
 
-    index_content = index_path.read_text(encoding="utf-8")
     article_paths = _select_articles(wiki_dir, question)
 
     today = date.today().isoformat()
     slug = re.sub(r"[^a-z0-9]+", "-", question.lower())[:40].strip("-")
     output_path = vault / "outputs" / f"{today}-{slug}.md"
 
-    return vault, index_content, article_paths, output_path
+    return vault, article_paths, output_path
 
 
 def ask(cfg: Config, question: str, dry_run: bool = False) -> None:
@@ -141,7 +142,7 @@ def ask(cfg: Config, question: str, dry_run: bool = False) -> None:
     result = _prepare(cfg, question)
     if result is None:
         return
-    vault, index_content, article_paths, output_path = result
+    vault, article_paths, output_path = result
 
     if article_paths:
         names = ", ".join(p.name for p in article_paths)
@@ -149,7 +150,7 @@ def ask(cfg: Config, question: str, dry_run: bool = False) -> None:
     else:
         print("Querying wiki (no articles matched — wiki may be empty)...")
 
-    prompt = _build_ask_prompt(vault, question, index_content, article_paths, output_path)
+    prompt = _build_ask_prompt(vault, question, article_paths, output_path)
     llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
 
     if not dry_run and output_path.exists():
@@ -159,13 +160,13 @@ def ask(cfg: Config, question: str, dry_run: bool = False) -> None:
 def ask_interactive(cfg: Config, question: str) -> None:
     """Interactive: launch LLM in interactive mode with wiki context pre-loaded.
 
-    The context (index + pre-selected articles) is passed as the initial message.
+    The context (pre-selected articles) is passed as the initial message.
     The LLM binary is invoked without the -p flag so it starts an interactive session.
     """
     result = _prepare(cfg, question)
     if result is None:
         return
-    vault, index_content, article_paths, _ = result
+    vault, article_paths, _ = result
 
     if article_paths:
         names = ", ".join(p.name for p in article_paths)
@@ -174,7 +175,7 @@ def ask_interactive(cfg: Config, question: str) -> None:
         print("Starting interactive session (no articles pre-loaded — wiki may be empty)")
 
     # Build context prompt without an output_path instruction (user drives the session)
-    initial_prompt = _build_ask_prompt(vault, question, index_content, article_paths, output_path=None)
+    initial_prompt = _build_ask_prompt(vault, question, article_paths, output_path=None)
 
     # Strip -p (or --print) from args so the LLM starts in interactive mode
     interactive_args = [a for a in cfg.llm_args if a not in ("-p", "--print")]

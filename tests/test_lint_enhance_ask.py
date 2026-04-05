@@ -9,7 +9,7 @@ from pathlib import Path
 from wiki import config, frontmatter
 from wiki.ask import _select_articles, _tokenize, ask
 from wiki.enhance import _collect_frontmatter_summary, enhance
-from wiki.lint import _all_stable, _cluster_by_tag, _read_articles, lint
+from wiki.lint import _all_stable, _cluster_by_tag, _open_case_clusters, _read_articles, lint
 
 MOCK_CLAUDE = Path(__file__).parent / "fixtures" / "mock_claude.py"
 TODAY = date.today().isoformat()
@@ -98,6 +98,31 @@ class TestClusterByTag(unittest.TestCase):
         self.assertNotIn("solo", clusters)
 
 
+class TestOpenCaseClusters(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.vault = _make_vault(self.tmp)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def test_detects_open_cluster_by_cluster_key(self):
+        case = self.vault / "queue" / "lint" / "open" / "lint-tsn-2026-01-01.md"
+        case.write_text("---\ncluster: tsn\nstatus: open\n---\n\n## Findings\n- conflict\n")
+        result = _open_case_clusters(self.vault)
+        self.assertIn("tsn", result)
+
+    def test_detects_open_cluster_by_tags(self):
+        case = self.vault / "queue" / "lint" / "open" / "lint-net-2026-01-01.md"
+        case.write_text("---\ntags: [networking, tsn]\nstatus: open\n---\n\n## Findings\n")
+        result = _open_case_clusters(self.vault)
+        self.assertIn("networking", result)
+        self.assertIn("tsn", result)
+
+    def test_empty_when_no_open_cases(self):
+        self.assertEqual(_open_case_clusters(self.vault), set())
+
+
 class TestAllStable(unittest.TestCase):
     def _entry(self, status: str) -> tuple:
         return (Path("x.md"), {"status": status}, "")
@@ -157,6 +182,27 @@ class TestLintIntegration(unittest.TestCase):
         cases = list((self.vault / "queue" / "lint" / "open").glob("*.md"))
         self.assertEqual(len(cases), 0)
 
+    def test_lint_skips_cluster_with_open_report(self):
+        _write_article(self.wiki, "article-a.md", ["tsn"])
+        _write_article(self.wiki, "article-b.md", ["tsn"])
+        # Pre-seed an open case for the same cluster
+        case = self.vault / "queue" / "lint" / "open" / "lint-tsn-2026-01-01.md"
+        case.write_text("---\ncluster: tsn\nstatus: open\n---\n\n## Findings\n- existing issue\n")
+        lint(self.cfg)
+        # Should not have created a second case
+        cases = list((self.vault / "queue" / "lint" / "open").glob("*.md"))
+        self.assertEqual(len(cases), 1)
+
+    def test_lint_max_calls_limits_invocations(self):
+        # Create 6 clusters (one tag each, 2 articles each)
+        for i in range(6):
+            _write_article(self.wiki, f"a{i}.md", [f"tag{i}"])
+            _write_article(self.wiki, f"b{i}.md", [f"tag{i}"])
+        lint(self.cfg, max_calls=2)
+        # At most 2 case files should be created
+        cases = list((self.vault / "queue" / "lint" / "open").glob("*.md"))
+        self.assertLessEqual(len(cases), 2)
+
 
 # ===========================================================================
 # enhance unit tests
@@ -181,6 +227,20 @@ class TestCollectFrontmatterSummary(unittest.TestCase):
     def test_empty_wiki_returns_placeholder(self):
         summary = _collect_frontmatter_summary(self.wiki)
         self.assertIn("no articles", summary)
+
+    def test_sampling_limits_articles(self):
+        for i in range(10):
+            _write_article(self.wiki, f"article-{i}.md", ["tag"])
+        summary = _collect_frontmatter_summary(self.wiki, max_articles=3)
+        count = summary.count("article-")
+        self.assertEqual(count, 3)
+        self.assertIn("sampled randomly", summary)
+
+    def test_no_sampling_when_under_limit(self):
+        for i in range(5):
+            _write_article(self.wiki, f"article-{i}.md", ["tag"])
+        summary = _collect_frontmatter_summary(self.wiki, max_articles=10)
+        self.assertNotIn("sampled randomly", summary)
 
 
 class TestEnhanceIntegration(unittest.TestCase):

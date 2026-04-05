@@ -25,6 +25,8 @@ __pycache__/
 *.pyc
 .DS_Store
 outputs/
+logs/
+.obsidian/
 """
 
 
@@ -58,6 +60,7 @@ def init(cfg: Config) -> None:
     _create_dir(vault / "wiki")
     _create_dir(vault / "assets")
     _create_dir(vault / "outputs")
+    _create_dir(vault / "logs")
 
     _create_file(vault / "raw" / ".manifest", "")
     _create_file(vault / "wiki" / "_index.md", _SEED_INDEX)

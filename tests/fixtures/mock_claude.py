@@ -13,9 +13,9 @@ import sys
 from pathlib import Path
 
 
-def _vault(prompt: str) -> Path | None:
-    m = re.search(r"## Vault root\s*\n\s*(\S+)", prompt)
-    return Path(m.group(1)) if m else None
+def _vault(_prompt: str) -> Path:
+    # llm.py always sets cwd=vault when invoking the LLM binary
+    return Path.cwd()
 
 
 def _handle_compile(vault: Path) -> None:
@@ -86,8 +86,6 @@ def main() -> None:
     lower = prompt.lower()
 
     vault = _vault(prompt)
-    if vault is None:
-        sys.exit(0)
 
     if "source files to process" in lower or "session-log entries" in lower:
         _handle_compile(vault)
