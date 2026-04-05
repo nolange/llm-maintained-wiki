@@ -1,0 +1,19 @@
+[vault]
+path = "/tmp/wiki-test-vault"
+
+[user]
+name = "testuser"
+
+[resolver]
+mode = "direct"
+
+[llm]
+backend = "claude"
+
+[claude]
+path = "tests/fixtures/mock_claude.py"
+args = ["-p"]
+
+[copilot]
+path = "tests/fixtures/mock_claude.py"
+args = ["-p"]

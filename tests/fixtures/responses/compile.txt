@@ -1,0 +1,37 @@
+## Articles
+
+### test-article.md
+---
+tags: [test, example]
+status: draft
+---
+
+# Test Article
+
+This is a test article compiled from source material.
+
+## Index updates
+
+# Wiki Index
+
+<!-- AI-maintained. Do not edit manually. -->
+
+## Articles
+
+- [Test Article](test-article.md) — tags: [test, example]
+
+## Tag indexes
+
+test
+example
+
+## New URLs
+
+### https://example.com/reference
+tags: [test]
+### Why
+Reference documentation for the test topic.
+
+## Sidecars
+
+## Skipped

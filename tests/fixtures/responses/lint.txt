@@ -1,0 +1,15 @@
+---
+cluster: test-cluster
+articles: [test-article.md, test-article-2.md]
+tags: [test]
+status: open
+---
+
+## Findings
+- test-article.md and test-article-2.md define the same concept differently
+
+## Recommendation
+Merge into one canonical article. Keep the definition from test-article.md.
+
+## Context for Resolver
+Review both articles and merge. Preserve code examples from test-article-2.md.

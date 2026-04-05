@@ -1,0 +1,13 @@
+# Wiki Enhancement Report
+
+## Missing Cross-Links
+- [test-article.md](wiki/test-article.md) ↔ [test-article-2.md](wiki/test-article-2.md): both cover the test domain
+
+## Topic Gaps
+- **test-advanced** — no article covers advanced test scenarios
+
+## Article Candidates
+- **test-patterns** — common patterns found across test-article.md and test-article-2.md
+
+## Thin Articles
+- [test-article.md](wiki/test-article.md) — currently draft, could be expanded
