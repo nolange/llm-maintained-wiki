@@ -4,15 +4,7 @@ from pathlib import Path
 
 from .config import Config
 
-_SEED_INDEX = """\
-# Wiki Index
-
-<!-- AI-maintained. Do not edit manually. -->
-
-## Articles
-
-(none yet)
-"""
+_SEED_INDEX = "# filename\ttags\ttitle\n"
 
 _SEED_LINKS = """\
 # Links Registry
@@ -63,7 +55,7 @@ def init(cfg: Config) -> None:
     _create_dir(vault / "logs")
 
     _create_file(vault / "raw" / ".manifest", "")
-    _create_file(vault / "wiki" / "_index.md", _SEED_INDEX)
+    _create_file(vault / "wiki" / "_index", _SEED_INDEX)
     _create_file(vault / "assets" / "links.md", _SEED_LINKS)
     _create_file(vault / ".gitignore", _SEED_GITIGNORE)
 

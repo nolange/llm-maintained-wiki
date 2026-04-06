@@ -57,7 +57,7 @@ def _collect_frontmatter_summary(wiki_dir: Path, max_articles: int | None = None
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-def _build_enhance_prompt(vault: Path, _unused: str, frontmatter_summary: str) -> str:
+def _build_enhance_prompt(vault: Path, frontmatter_summary: str) -> str:
     instructions = _load_prompt("enhance")
     today = date.today().isoformat()
     output_path = f"outputs/enhance-{today}.md"
@@ -67,7 +67,7 @@ def _build_enhance_prompt(vault: Path, _unused: str, frontmatter_summary: str) -
         "",
         f"## Today's date\n\n{today}",
         "",
-        "## Wiki Index\n\n@wiki/_index.md",
+        "## Wiki Index\n\n@wiki/_index",
         "",
         "## Article Frontmatter Summary",
         "",
@@ -93,7 +93,7 @@ _DEFAULT_MAX_ARTICLES = 50
 def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX_ARTICLES) -> None:
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
-    index_path = wiki_dir / "_index.md"
+    index_path = wiki_dir / "_index"
 
     if not wiki_dir.exists():
         print("Wiki directory does not exist. Run `wiki init` first.")
@@ -114,7 +114,7 @@ def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX
         print(f"Generating enhancement report ({max_articles}/{total} articles sampled)...")
     else:
         print(f"Generating enhancement report ({total} article(s))...")
-    prompt = _build_enhance_prompt(vault, "", frontmatter_summary)
+    prompt = _build_enhance_prompt(vault, frontmatter_summary)
     llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
 
     if not dry_run:

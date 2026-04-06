@@ -86,7 +86,7 @@ def _build_ask_prompt(
         "",
         f"## Question\n\n{question}",
         "",
-        "## Wiki Index\n\n@wiki/_index.md",
+        "## Wiki Index\n\n@wiki/_index",
         "",
     ]
 
@@ -118,7 +118,7 @@ def _prepare(cfg: Config, question: str) -> tuple[Path, list[Path], Path] | None
     """Shared setup for both ask modes. Returns (vault, articles, output_path)."""
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
-    index_path = wiki_dir / "_index.md"
+    index_path = wiki_dir / "_index"
 
     if not wiki_dir.exists():
         print("Wiki directory does not exist. Run `wiki init` first.")

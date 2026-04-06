@@ -23,7 +23,7 @@ Python: PyYAML, requests (Python 3.11+)
       open/
       resolved/
   wiki/
-    _index.md
+    _index
   assets/
     links.md
   outputs/
@@ -216,26 +216,24 @@ Steps the Wiki AI performs (driven by `prompts/compile.md`):
 
 1.  Find new/changed files in `raw/` via manifest
 2.  Extract text via `lib/ingest.py`
-3.  Read `wiki/_index.md` for existing structure context
+3.  Read `wiki/_index` for existing structure context
 4.  For each new file: call Claude to produce or update a wiki article
 5.  Assign tags and folder (respecting `folder:` frontmatter if user set it)
-6.  Update `wiki/_index.md`
-7.  Regenerate tag indexes (`_index_<tag>.md`) from frontmatter scan
-8.  Scan compiled content for external URLs → add missing entries to `assets/links.md`
-9.  For new assets: generate sidecar `.meta.md` via Claude
-10. For `fetch-abstract: true` entries in `assets/links.md`: fetch via `requests`, generate abstract
-11. Process `queue/session-log/open/` — same pipeline, move to `processed/` after
-12. Update manifest
+6.  Update `wiki/_index`
+7.  Scan compiled content for external URLs → add missing entries to `assets/links.md`
+8.  For new assets: generate sidecar `.meta.md` via Claude
+9.  For `fetch-abstract: true` entries in `assets/links.md`: fetch via `requests`, generate abstract
+10. Process `queue/session-log/open/` — same pipeline, move to `processed/` after
+11. Update manifest
 
 Deliverables:
 
 - `wiki compile` subcommand implemented
 - `prompts/compile.md`
-- Tag index generation
 - URL registry maintenance
 
 Done when: dropping a markdown file in `raw/`, running `wiki compile`, produces a wiki
-article with frontmatter, an updated `_index.md`, and a tag index entry.
+article with frontmatter and an updated `wiki/_index`.
 
 ---
 
@@ -297,7 +295,7 @@ outdated content, inconsistencies between articles covering the same topic.
 
 Steps the Lint AI performs (driven by `prompts/lint.md`):
 
-1.  Read `wiki/_index.md` to get all articles and their tags
+1.  Read `wiki/_index` to get all articles and their tags
 2.  Cluster articles by shared tags
 3.  For each cluster (up to 10 articles): read all, call Claude to analyse
 4.  If issues found: write case file to `queue/lint/open/YYYY-MM-DD-<cluster>.md`
@@ -323,7 +321,7 @@ and candidates for new articles based on recurring themes.
 
 Steps (driven by `prompts/enhance.md`):
 
-1.  Read `_index.md` + all article frontmatter
+1.  Read `wiki/_index` + all article frontmatter
 2.  Call Claude to identify: missing cross-links, topic gaps, article candidates
 3.  Write suggestions to `outputs/enhance-YYYY-MM-DD.md`
 4.  Does not modify wiki — suggestions only, you decide what to act on
@@ -363,7 +361,7 @@ Validates wiki integrity without LLM:
 
 - Every article has required frontmatter keys (`tags`, `status`)
 - All internal links resolve to real files
-- All articles in `_index.md` exist on disk and vice versa
+- All articles in `wiki/_index` exist on disk and vice versa
 - All asset sidecars exist for non-markdown files in `assets/`
 - All entries in `assets/links.md` have a `### Why` section
 
@@ -376,7 +374,7 @@ Assertions are structural only — LLM output is non-deterministic, mock output 
 
 | Test | Setup | Assert |
 |----|----|----|
-| compile basic | drop `.md` in `raw/`, run compile | article in `wiki/`, has frontmatter, in `_index.md` |
+| compile basic | drop `.md` in `raw/`, run compile | article in `wiki/`, has frontmatter, in `wiki/_index` |
 | compile PDF | drop `.pdf` in `raw/`, run compile | article in `wiki/`, sidecar in `assets/` |
 | compile adoc | drop `.adoc` in `raw/`, run compile | article in `wiki/` |
 | compile drawio | drop `.drawio` in `assets/`, run compile | sidecar `.meta.md` exists |

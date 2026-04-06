@@ -167,43 +167,6 @@ def _make_batches(
 
 
 # ---------------------------------------------------------------------------
-# Post-run tag index rebuild
-# ---------------------------------------------------------------------------
-
-def _rebuild_all_tag_indexes(vault: Path) -> None:
-    """Scan all wiki articles and regenerate per-tag index files."""
-    wiki_dir = vault / "wiki"
-    if not wiki_dir.exists():
-        return
-
-    tag_map: dict[str, list[tuple[str, str]]] = {}
-    for md_path in sorted(wiki_dir.glob("*.md")):
-        if md_path.name.startswith("_"):
-            continue
-        try:
-            meta, body = frontmatter.read(md_path)
-        except Exception:
-            continue
-        article_tags = meta.get("tags", [])
-        title = md_path.stem
-        for line in body.splitlines():
-            if line.startswith("# "):
-                title = line[2:].strip()
-                break
-        for tag in article_tags:
-            tag_map.setdefault(tag, []).append((md_path.name, title))
-
-    for tag, entries in tag_map.items():
-        lines = [f"# Tag Index: {tag}\n"]
-        for filename, title in sorted(entries):
-            lines.append(f"- [{title}]({filename})")
-        index_path = wiki_dir / f"_index_{tag}.md"
-        index_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-    logger.info(f"Rebuilt {len(tag_map)} tag index(es)")
-
-
-# ---------------------------------------------------------------------------
 # URL registry (Python-only, no LLM)
 # ---------------------------------------------------------------------------
 
@@ -303,15 +266,12 @@ def compile(cfg: Config, dry_run: bool = False) -> None:
     # 5. Clean up any temp extraction files
     _cleanup_temp(readable_raw)
 
-    # 6. Rebuild tag indexes from updated wiki/
-    _rebuild_all_tag_indexes(vault)
-
-    # 7. Update manifest for processed raw files
+    # 6. Update manifest for processed raw files
     for path in raw_files_paths:
         manifest.mark_done(mfst, vault, path)
     manifest.save(vault, mfst)
 
-    # 8. Move processed session log entries
+    # 7. Move processed session log entries
     _move_to_processed(vault, session_entries_paths)
 
     print("Done.")

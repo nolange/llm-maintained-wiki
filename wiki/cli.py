@@ -8,14 +8,18 @@ from pathlib import Path
 from . import config, frontmatter, vault as vault_mod
 
 
-_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+\.md)\)")
-
-
 def _parse_index_filenames(index_path: Path) -> list[str]:
+    """Parse filenames from the tab-separated wiki/_index registry."""
     if not index_path.exists():
         return []
-    text = index_path.read_text(encoding="utf-8")
-    return [m.group(2) for m in _LINK_RE.finditer(text)]
+    filenames = []
+    for line in index_path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("#") or not line.strip():
+            continue
+        filename = line.split("\t")[0].strip()
+        if filename:
+            filenames.append(filename)
+    return filenames
 
 
 # ---------------------------------------------------------------------------
@@ -54,6 +58,39 @@ def cmd_init(args: argparse.Namespace, cfg: config.Config) -> None:
 
 
 # ---------------------------------------------------------------------------
+# `wiki reindex` — rebuild _index from article frontmatter (no LLM)
+# ---------------------------------------------------------------------------
+
+def cmd_reindex(args: argparse.Namespace, cfg: config.Config) -> None:
+    wiki_dir = cfg.vault_path / "wiki"
+    index_path = wiki_dir / "_index"
+
+    if not wiki_dir.exists():
+        print("Wiki directory does not exist. Run `wiki init` first.")
+        return
+
+    lines = ["# filename\ttags\ttitle"]
+    count = 0
+    for md_path in sorted(wiki_dir.glob("*.md")):
+        try:
+            meta, body = frontmatter.read(md_path)
+        except Exception as exc:
+            print(f"  skip {md_path.name}: {exc}")
+            continue
+        tags = ",".join(meta.get("tags", []))
+        title = md_path.stem
+        for line in body.splitlines():
+            if line.startswith("# "):
+                title = line[2:].strip()
+                break
+        lines.append(f"{md_path.name}\t{tags}\t{title}")
+        count += 1
+
+    index_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Rebuilt _index with {count} article(s).")
+
+
+# ---------------------------------------------------------------------------
 # `wiki check` — structural validator (no LLM)
 # ---------------------------------------------------------------------------
 
@@ -63,15 +100,11 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
     assets_dir = vault / "assets"
-    index_path = wiki_dir / "_index.md"
+    index_path = wiki_dir / "_index"
     links_path = assets_dir / "links.md"
 
     # 1. Every article must have tags (list) and status (str)
-    article_files = (
-        [p for p in wiki_dir.glob("*.md") if not p.name.startswith("_index")]
-        if wiki_dir.exists()
-        else []
-    )
+    article_files = list(wiki_dir.glob("*.md")) if wiki_dir.exists() else []
 
     for md_path in sorted(article_files):
         try:
@@ -96,20 +129,20 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
                 f"got {type(meta['status']).__name__}"
             )
 
-    # 2. Every article in _index.md must exist on disk
+    # 2. Every article in _index must exist on disk
     indexed_filenames = _parse_index_filenames(index_path)
     for filename in indexed_filenames:
         if not (wiki_dir / filename).exists():
             violations.append(
-                f"[index] '{filename}' listed in _index.md but does not exist on disk"
+                f"[index] '{filename}' listed in _index but does not exist on disk"
             )
 
-    # 3. Every article on disk must be listed in _index.md
+    # 3. Every article on disk must be listed in _index
     indexed_set = set(indexed_filenames)
     for md_path in sorted(article_files):
         if md_path.name not in indexed_set:
             violations.append(
-                f"[index] '{md_path.name}' exists on disk but is not listed in _index.md"
+                f"[index] '{md_path.name}' exists on disk but is not listed in _index"
             )
 
     # 4. Every non-markdown file in assets/ must have a .meta.md sidecar
@@ -170,6 +203,7 @@ def main() -> None:
         )
 
     sub.add_parser("init", help="Initialize vault directory structure.")
+    sub.add_parser("reindex", help="Rebuild wiki/_index from article frontmatter (no LLM).")
     sub.add_parser("check", help="Validate wiki structural integrity (no LLM).")
 
     compile_p = sub.add_parser("compile", help="Compile raw/ and session-log/ into wiki articles.")
@@ -212,6 +246,7 @@ def main() -> None:
 
     dispatch = {
         "init": cmd_init,
+        "reindex": cmd_reindex,
         "compile": cmd_compile,
         "lint": cmd_lint,
         "enhance": cmd_enhance,

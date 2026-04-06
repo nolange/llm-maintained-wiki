@@ -35,12 +35,7 @@ git --version
 
 ## Installation
 
-``` bash
-git clone <this-repo> ~/CLionProjects/karpathy
-cd ~/CLionProjects/karpathy
-```
-
-No pip install needed — dependencies (PyYAML, requests) are pre-installed on the target system.
+Install dependencies (PyYAML, requests).
 
 Verify everything is wired up:
 
@@ -106,7 +101,7 @@ This creates the full directory structure at `~/wiki/`:
     lint/open/                ← lint cases waiting for resolution
     lint/resolved/
   wiki/                       ← compiled articles live here
-    _index.md                 ← article registry (AI-maintained)
+    _index                    ← article registry (tab-separated: filename, tags, title)
   assets/                     ← PDFs, images, drawio files
     links.md                  ← external URL registry
   outputs/                    ← ask answers and enhance reports
@@ -131,7 +126,7 @@ when Claude Code is opened in this project directory. To also use them from `~/w
 
 ``` bash
 mkdir -p ~/wiki/.claude
-ln -s ~/CLionProjects/karpathy/.claude/commands ~/wiki/.claude/commands
+ln -s PROJ_PATH/.claude/commands ~/wiki/.claude/commands
 ```
 
 ---
@@ -163,8 +158,7 @@ python3 -m wiki compile
 ```
 
 The Wiki AI reads each new/changed file in `raw/`, produces or updates a wiki article in
-`wiki/`, updates `wiki/_index.md`, rebuilds tag indexes, and registers any external URLs
-found in `assets/links.md`.
+`wiki/`, updates `wiki/_index`, and registers any external URLs found in `assets/links.md`.
 
 Also processes open session-log entries from `queue/session-log/open/` (moves them to
 `processed/` after).
@@ -187,7 +181,7 @@ python3 -m wiki check
 Validates the vault without calling any LLM:
 
 - Every article has `tags` (list) and `status` (`draft`/`stable`/`needs-review`) in frontmatter
-- All links in `_index.md` resolve to files on disk and vice versa
+- All entries in `wiki/_index` resolve to files on disk and vice versa
 - Every non-markdown file in `assets/` has a `.meta.md` sidecar
 - Every entry in `assets/links.md` has a `### Why` section
 
@@ -396,7 +390,6 @@ FROM "wiki"
 WHERE status != "stable"
 FLATTEN tags AS tag
 GROUP BY tag
-```
 ```
 ````
 

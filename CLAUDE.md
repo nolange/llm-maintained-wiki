@@ -42,7 +42,7 @@ Vault structure:
 raw/                  flat drop zone for source material
 queue/session-log/    open/ → processed/  (session AI dumps)
 queue/lint/           open/ → resolved/   (lint case files)
-wiki/                 flat article store + _index.md
+wiki/                 flat article store + _index (tab-separated registry)
 assets/               PDFs, images, drawio + .meta.md sidecars
 assets/links.md       external URL registry
 outputs/              Q&A answers, charts, slides
