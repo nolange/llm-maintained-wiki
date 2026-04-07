@@ -23,6 +23,7 @@ wiki/           Python package (source of truth for all logic)
   ingest.py     Text extraction (md, pdf, docx, adoc, rst, drawio, images)
   vault.py      Vault initialization logic
   prompts/      LLM system prompts (compile, lint, enhance, ask)
+  templates/    Seed files copied into new vaults (vault-AGENTS.md)
 docs/           Design and implementation documents
 tests/
   fixtures/     mock_claude.py, config.toml, fixture responses
@@ -122,8 +123,9 @@ Skills live in `.agents/skills/` (agentskills.io format) and are available in an
 - `/wiki-resolve <case-file>` — interactively resolve a lint case
 - `/wiki-compare <document>` — compare an external document against the wiki; surface conflicts, gaps, and proposed wiki updates
 
-**Background (auto-loaded, not user-invocable):**
-- `wiki-context` — injects vault conventions and AI role boundaries when Claude Code is opened in a vault directory (`wiki/**`, `queue/**`, `assets/**`, `raw/**`). Ensures the AI never violates role boundaries without the user having to prompt it.
+**Vault context (auto-loaded via `AGENTS.md`):**
+
+Vault sessions load context automatically via `AGENTS.md` at the vault root, placed there by `wiki init`. `CLAUDE.md` is a symlink to it, so Claude Code and Copilot both load the same file. It instructs the AI to read `wiki/_index`, and documents vault conventions, the CLI reference, and AI role boundaries.
 
 ## Multi-user
 

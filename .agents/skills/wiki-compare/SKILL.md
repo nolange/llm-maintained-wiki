@@ -13,7 +13,7 @@ compatibility: >
   for binary formats.
 argument-hint: <document-path>
 disable-model-invocation: true
-allowed-tools: Read Write Bash(pdftotext:*) Bash(pandoc:*) Bash(python3:*)
+allowed-tools: Read Write Bash(pdftotext *) Bash(pandoc *)
 ---
 
 # Wiki Compare

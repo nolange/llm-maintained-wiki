@@ -284,18 +284,16 @@ Skills live in `.agents/skills/<name>/SKILL.md`. `.claude/skills/` is a symlink 
 
 **User-invocable:**
 
-| Skill                       | What it does                                                                       |
-|-----------------------------|------------------------------------------------------------------------------------|
-| `/wiki-log`                 | Dumps session findings to `queue/session-log/open/`                                |
-| `/wiki-ask "question"`      | Reads `wiki/_index` + relevant articles, answers in context                        |
-| `/wiki-resolve <case>`      | Starts interactive resolver session for a lint case                                |
-| `/wiki-compare <document>`  | Compares an external document against the wiki: conflicts, gaps, proposed updates  |
+| Skill                      | What it does                                                                      |
+|----------------------------|-----------------------------------------------------------------------------------|
+| `/wiki-log`                | Dumps session findings to `queue/session-log/open/`                               |
+| `/wiki-ask "question"`     | Reads `wiki/_index` + relevant articles, answers in context                       |
+| `/wiki-resolve <case>`     | Starts interactive resolver session for a lint case                               |
+| `/wiki-compare <document>` | Compares an external document against the wiki: conflicts, gaps, proposed updates |
 
-**Background (auto-loaded via `paths:`, not user-invocable):**
+**Vault context (auto-loaded via `AGENTS.md`):**
 
-| Skill           | Trigger paths                              | What it does                                                        |
-|-----------------|--------------------------------------------|---------------------------------------------------------------------|
-| `wiki-context`  | `wiki/**`, `queue/**`, `assets/**`, `raw/**` | Injects vault conventions and AI role boundaries into the session. Ensures the AI never violates role boundaries (e.g. Session AI writing to `wiki/`) without explicit user instruction. |
+`wiki init` places an `AGENTS.md` at the vault root, a `CLAUDE.md` symlink pointing to it, and a `scripts/wiki` symlink pointing to `llm-wiki.sh`. Claude Code loads `CLAUDE.md` and Copilot loads `AGENTS.md` — both resolve to the same file, so vault conventions and AI role boundaries are always injected at session start with no file access required. `AGENTS.md` instructs the AI to read `wiki/_index` and documents the full CLI reference and role boundaries. The template is at `wiki/templates/vault-AGENTS.md` in this project.
 
 ### CLI Scripts (shell — croonable, terminal)
 

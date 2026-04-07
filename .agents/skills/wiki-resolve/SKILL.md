@@ -11,7 +11,7 @@ compatibility: >
   resolver.mode read from ~/.config/wiki/config.toml. Branch mode requires git.
 argument-hint: [<case-file>]
 disable-model-invocation: true
-allowed-tools: Read Write Bash(git:*) Bash(${CLAUDE_SKILL_DIR}/../wiki-context/scripts/wiki:*)
+allowed-tools: Read Write Bash(git *)
 ---
 
 Resolve a lint case file produced by the Lint AI. The user invokes this as:
@@ -59,7 +59,7 @@ If a contradiction cannot be resolved without more information:
 ### If `resolver.mode = "direct"` (single-user / personal)
 
 1. Edit wiki articles directly on the current branch
-2. Run `${CLAUDE_SKILL_DIR}/../wiki-context/scripts/wiki check --fix` to normalize any frontmatter
+2. Run `scripts/wiki check --fix` to normalize any frontmatter
 3. Move the case file: rename from `queue/lint/open/` to `queue/lint/resolved/`
 4. Only if the user requests to commit: `git add -A && git commit -m "resolve: <case-name>"`
 
@@ -73,7 +73,7 @@ If a contradiction cannot be resolved without more information:
 
 2. Edit wiki articles on that branch.
 
-3. Run `${CLAUDE_SKILL_DIR}/../wiki-context/scripts/wiki check --fix` to normalize any frontmatter.
+3. Run `scripts/wiki check --fix` to normalize any frontmatter.
 
 4. Move the case file to `queue/lint/resolved/`.
 
