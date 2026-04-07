@@ -37,12 +37,12 @@ def read(path: Path) -> tuple[dict, str]:
 def normalized(meta: dict, body: str) -> str:
     """Return the canonical serialisation of a file with this frontmatter and body."""
     fm = yaml.dump(meta, default_flow_style=False, allow_unicode=True)
-    return f"---\n{fm}---\n\n{body.lstrip('\n')}"
+    return f"---\n{fm}---\n\n{body.lstrip('\r\n')}"
 
 
 def write(path: Path, meta: dict, body: str) -> None:
     """Write a markdown file with YAML frontmatter."""
-    path.write_text(normalized(meta, body), encoding="utf-8")
+    path.write_text(normalized(meta, body), encoding="utf-8", newline="\n")
 
 
 def read_key(path: Path, key: str) -> Any:
