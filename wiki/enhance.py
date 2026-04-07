@@ -25,7 +25,7 @@ def _load_prompt(name: str) -> str:
 def _collect_frontmatter_summary(wiki_dir: Path, max_articles: int | None = None) -> str:
     """Return a compact frontmatter listing, randomly sampled to max_articles if set."""
     all_paths = sorted(
-        p for p in wiki_dir.glob("*.md") if not p.name.startswith("_")
+        p for p in wiki_dir.rglob("*.md") if not p.name.startswith("_")
     )
     if max_articles is not None and len(all_paths) > max_articles:
         paths = random.sample(all_paths, max_articles)
@@ -111,7 +111,7 @@ def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX
         print("Wiki index not found. Run `wiki compile` first.")
         return
 
-    all_articles = [p for p in (wiki_dir).glob("*.md") if not p.name.startswith("_")]
+    all_articles = [p for p in wiki_dir.rglob("*.md") if not p.name.startswith("_")]
     total = len(all_articles)
     frontmatter_summary = _collect_frontmatter_summary(wiki_dir, max_articles)
 

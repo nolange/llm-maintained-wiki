@@ -36,6 +36,7 @@ For each source file:
 - **Assign tags**: be specific. Prefer `tsn-credit-shaper` over `tsn`, prefer `linux-tc-taprio` over `linux`. Lowercase-kebab-case.
 - **Assign `folder:`** only if the dominant topic is unambiguous. If content spans domains, omit it and place the file at `wiki/<filename>.md`.
 - **Preserve everything**: do not summarise, compress, or drop information from source files. Every fact, value, example, command, and nuance in the source must appear in the article. You may freely merge, split, reorder, or restructure content across articles — but nothing may be lost. The wiki is the long-term record; compaction is the job of Lint/Enhance AI, not Compile AI.
+- **Preserve all links**: links in source files are content — never drop them. If the target filename matches an article in `wiki/_index`, update the link to point to the correct relative path of that article in the wiki. If the target is not yet in the wiki, keep the link as written.
 - **Cite sources**: add or maintain a `sources:` key in the YAML frontmatter listing every source file that contributed content, as Obsidian wikilinks. When merging content from multiple source files into one article, include all of them.
 - **Update relative links**: Obsidian `[[wikilinks]]` resolve by filename and need no changes. Standard markdown links (`[text](path.md)`) are path-sensitive — if you create or move an article into a subdirectory, scan all articles in this batch for markdown links pointing to it and rewrite them to the correct relative path.
 

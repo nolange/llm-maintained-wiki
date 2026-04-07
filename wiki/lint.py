@@ -25,7 +25,7 @@ def _load_prompt(name: str) -> str:
 def _read_articles(wiki_dir: Path) -> list[tuple[Path, dict, str]]:
     """Return (path, meta, body) for each non-index article."""
     result = []
-    for md_path in sorted(wiki_dir.glob("*.md")):
+    for md_path in sorted(wiki_dir.rglob("*.md")):
         if md_path.name.startswith("_"):
             continue
         try:

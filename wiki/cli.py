@@ -69,13 +69,15 @@ def cmd_reindex(args: argparse.Namespace, cfg: config.Config) -> None:
         print("Wiki directory does not exist. Run `wiki init` first.")
         return
 
-    lines = ["# filename\ttags\ttitle"]
+    lines = ["# relative-path\ttags\ttitle"]
     count = 0
-    for md_path in sorted(wiki_dir.glob("*.md")):
+    for md_path in sorted(wiki_dir.rglob("*.md")):
+        if md_path.name.startswith("_"):
+            continue
         try:
             meta, body = frontmatter.read(md_path)
         except Exception as exc:
-            print(f"  skip {md_path.name}: {exc}")
+            print(f"  skip {md_path.relative_to(wiki_dir)}: {exc}")
             continue
         tags = ",".join(meta.get("tags", []))
         title = md_path.stem
@@ -83,7 +85,8 @@ def cmd_reindex(args: argparse.Namespace, cfg: config.Config) -> None:
             if line.startswith("# "):
                 title = line[2:].strip()
                 break
-        lines.append(f"{md_path.name}\t{tags}\t{title}")
+        rel = str(md_path.relative_to(wiki_dir))
+        lines.append(f"{rel}\t{tags}\t{title}")
         count += 1
 
     index_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -94,8 +97,25 @@ def cmd_reindex(args: argparse.Namespace, cfg: config.Config) -> None:
 # `wiki check` — structural validator (no LLM)
 # ---------------------------------------------------------------------------
 
+def _sources_to_wikilinks(sources: str | list) -> list[str]:
+    """Normalise a sources value to a list of [[...]] wikilink strings."""
+    if isinstance(sources, str):
+        items = [s.strip() for s in sources.split(",") if s.strip()]
+    else:
+        items = [str(s).strip() for s in sources if s is not None]
+    result = []
+    for item in items:
+        if item.startswith("[[") and item.endswith("]]"):
+            result.append(item)
+        else:
+            result.append(f"[[{item}]]")
+    return result
+
+
 def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
+    fix: bool = getattr(args, "fix", False)
     violations: list[str] = []
+    fixable: list[tuple[Path, dict, str]] = []  # (path, meta, body) for --fix
 
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
@@ -104,30 +124,59 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
     links_path = assets_dir / "links.md"
 
     # 1. Every article must have tags (list) and status (str)
-    article_files = list(wiki_dir.glob("*.md")) if wiki_dir.exists() else []
+    article_files = (
+        [p for p in wiki_dir.rglob("*.md") if not p.name.startswith("_")]
+        if wiki_dir.exists() else []
+    )
 
     for md_path in sorted(article_files):
+        rel = str(md_path.relative_to(wiki_dir))
         try:
-            meta, _ = frontmatter.read(md_path)
+            meta, body = frontmatter.read(md_path)
         except Exception as exc:
-            violations.append(f"[frontmatter] {md_path.name}: failed to parse — {exc}")
+            violations.append(f"[frontmatter] {rel}: failed to parse — {exc}")
             continue
 
         if "tags" not in meta:
-            violations.append(f"[frontmatter] {md_path.name}: missing required key 'tags'")
+            violations.append(f"[frontmatter] {rel}: missing required key 'tags'")
         elif not isinstance(meta["tags"], list):
             violations.append(
-                f"[frontmatter] {md_path.name}: 'tags' must be a list, "
+                f"[frontmatter] {rel}: 'tags' must be a list, "
                 f"got {type(meta['tags']).__name__}"
             )
 
         if "status" not in meta:
-            violations.append(f"[frontmatter] {md_path.name}: missing required key 'status'")
+            violations.append(f"[frontmatter] {rel}: missing required key 'status'")
         elif not isinstance(meta["status"], str):
             violations.append(
-                f"[frontmatter] {md_path.name}: 'status' must be a string, "
+                f"[frontmatter] {rel}: 'status' must be a string, "
                 f"got {type(meta['status']).__name__}"
             )
+
+        # 6. sources entries must use [[...]] wikilink format
+        sources = meta.get("sources")
+        if sources is not None:
+            fixed = _sources_to_wikilinks(sources)
+            current = (
+                sources if isinstance(sources, list)
+                else [s.strip() for s in sources.split(",") if s.strip()]
+            )
+            needs_fix = fixed != current
+            if needs_fix:
+                bad = [
+                    s for s in current
+                    if not (isinstance(s, str) and s.startswith("[[") and s.endswith("]]"))
+                ]
+                msg = (
+                    f"[sources] {rel}: {len(bad)} source(s) not wrapped in [[...]]: "
+                    + ", ".join(bad[:3])
+                    + (" ..." if len(bad) > 3 else "")
+                )
+                if fix:
+                    meta["sources"] = fixed
+                    fixable.append((md_path, meta, body))
+                else:
+                    violations.append(msg)
 
     # 2. Every article in _index must exist on disk
     indexed_filenames = _parse_index_filenames(index_path)
@@ -140,9 +189,10 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
     # 3. Every article on disk must be listed in _index
     indexed_set = set(indexed_filenames)
     for md_path in sorted(article_files):
-        if md_path.name not in indexed_set:
+        rel = str(md_path.relative_to(wiki_dir))
+        if rel not in indexed_set:
             violations.append(
-                f"[index] '{md_path.name}' exists on disk but is not listed in _index"
+                f"[index] '{rel}' exists on disk but is not listed in _index"
             )
 
     # 4. Every non-markdown file in assets/ must have a .meta.md sidecar
@@ -166,11 +216,16 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
                     f"[links] Entry '## {first_line}' is missing a '### Why' section"
                 )
 
+    if fix and fixable:
+        for md_path, meta, body in fixable:
+            frontmatter.write(md_path, meta, body)
+        print(f"Fixed {len(fixable)} article(s).")
+
     if violations:
         for v in violations:
             print(v)
         sys.exit(1)
-    else:
+    elif not fixable:
         print("OK")
 
 
@@ -204,7 +259,13 @@ def main() -> None:
 
     sub.add_parser("init", help="Initialize vault directory structure.")
     sub.add_parser("reindex", help="Rebuild wiki/_index from article frontmatter (no LLM).")
-    sub.add_parser("check", help="Validate wiki structural integrity (no LLM).")
+    check_p = sub.add_parser("check", help="Validate wiki structural integrity (no LLM).")
+    check_p.add_argument(
+        "--fix",
+        action="store_true",
+        default=False,
+        help="Automatically fix fixable violations (e.g. sources not wrapped in [[...]]).",
+    )
 
     compile_p = sub.add_parser("compile", help="Compile raw/ and session-log/ into wiki articles.")
     _add_dry_run(compile_p)
