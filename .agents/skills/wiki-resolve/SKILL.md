@@ -4,15 +4,14 @@ description: >
   Resolve a lint case file produced by the Lint AI. Reads the case file,
   loads the affected wiki articles, presents the issues to the user, and
   applies approved fixes. Supports both direct-edit (single-user) and
-  branch+PR (multi-user) resolver modes. Use when given a lint case file
+  branch+MR (multi-user) resolver modes. Use when given a lint case file
   from queue/lint/open/.
 compatibility: >
   Intended to be run from the vault directory (~/wiki). Vault path and
-  resolver.mode read from ~/.config/wiki/config.toml. Branch mode requires
-  git and gh CLI.
+  resolver.mode read from ~/.config/wiki/config.toml. Branch mode requires git.
 argument-hint: [<case-file>]
 disable-model-invocation: true
-allowed-tools: Read Write Bash(git:*) Bash(gh:*)
+allowed-tools: Read Write Bash(git:*) Bash(${CLAUDE_SKILL_DIR}/../wiki-context/scripts/wiki:*)
 ---
 
 Resolve a lint case file produced by the Lint AI. The user invokes this as:
@@ -60,8 +59,9 @@ If a contradiction cannot be resolved without more information:
 ### If `resolver.mode = "direct"` (single-user / personal)
 
 1. Edit wiki articles directly on the current branch
-2. Move the case file: rename from `queue/lint/open/` to `queue/lint/resolved/`
-3. Suggest the user run `git add -A && git commit -m "resolve: <case-name>"`
+2. Run `${CLAUDE_SKILL_DIR}/../wiki-context/scripts/wiki check --fix` to normalize any frontmatter
+3. Move the case file: rename from `queue/lint/open/` to `queue/lint/resolved/`
+4. Only if the user requests to commit: `git add -A && git commit -m "resolve: <case-name>"`
 
 ### If `resolver.mode = "branch"` (multi-user / work)
 
@@ -73,21 +73,28 @@ If a contradiction cannot be resolved without more information:
 
 2. Edit wiki articles on that branch.
 
-3. Move the case file to `queue/lint/resolved/`.
+3. Run `${CLAUDE_SKILL_DIR}/../wiki-context/scripts/wiki check --fix` to normalize any frontmatter.
 
-4. Commit and push:
+4. Move the case file to `queue/lint/resolved/`.
+
+5. Commit and push. If the user requests opening a merge request, include push options (GitLab, requires Git 2.18+):
    ```
    git add -A
    git commit -m "resolve: <case-name>"
+
+   # GitLab — open MR via push options:
+   git push origin wiki/resolve/<case-name> \
+     -o merge_request.create \
+     -o merge_request.title="Wiki resolve: <case-name>" \
+     -o merge_request.description="<summary of findings and changes>" \
+     -o merge_request.remove_source_branch
+
+   # GitHub or plain push (no push-option support):
    git push origin wiki/resolve/<case-name>
+   # Then open the merge/pull request via the web UI or your git host's CLI.
    ```
 
-5. Open a PR:
-   ```
-   gh pr create --title "Wiki resolve: <case-name>" --body "<summary of findings and changes>"
-   ```
-
-6. Add a `## PR` section to the resolved case file with the PR URL for traceability.
+6. If a merge request was opened, add a `## MR` section to the resolved case file with the URL for traceability.
 
 ## After completing
 

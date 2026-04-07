@@ -4,9 +4,10 @@ description: >
   Wiki system conventions and boundaries. Loaded automatically when working
   with vault files (wiki/, queue/, assets/, raw/) or discussing the wiki
   system, compile, lint, or vault operations.
-compatibility: Claude Code only — uses user-invocable and paths fields.
+compatibility: Claude Code only — uses user-invocable, paths, and ${CLAUDE_SKILL_DIR}.
 user-invocable: false
 paths: wiki/**,queue/**,assets/**,raw/**
+allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/wiki:*)
 ---
 
 # Wiki system conventions
@@ -44,6 +45,23 @@ status: draft | stable | needs-review
 - Resolver writes to `wiki/` articles and moves case files — nothing else
 - Do not reconstruct wiki articles from `raw/` — the wiki is the source of truth
 - Grep for relationships; do not add `referenced-by` metadata
+
+## Wiki CLI
+
+> **Claude Code only** — `${CLAUDE_SKILL_DIR}` is not substituted in other tools. If running outside Claude Code, invoke the wiki CLI directly: `python3 -m wiki <command>` from the project root, or via the `llm-wiki.sh` wrapper.
+
+The wiki CLI is available at `${CLAUDE_SKILL_DIR}/scripts/wiki`. Use it for maintenance operations — never edit vault files manually when a CLI command does the job.
+
+| Command | What it does | When to use |
+|---|---|---|
+| `${CLAUDE_SKILL_DIR}/scripts/wiki compile` | Ingest `raw/` and session-log queue into wiki articles | After dropping source files |
+| `${CLAUDE_SKILL_DIR}/scripts/wiki lint` | Detect contradictions and inconsistencies → case files | Periodic quality sweep |
+| `${CLAUDE_SKILL_DIR}/scripts/wiki enhance` | Surface gaps, thin articles, missing cross-links | Periodic improvement sweep |
+| `${CLAUDE_SKILL_DIR}/scripts/wiki check` | Validate vault integrity (no LLM) | Before committing |
+| `${CLAUDE_SKILL_DIR}/scripts/wiki check --fix` | Validate and auto-fix frontmatter normalization | After editing articles |
+| `${CLAUDE_SKILL_DIR}/scripts/wiki ask "question"` | Answer a question via CLI (writes to outputs/) | Scripted/batch use |
+
+Always run `check --fix` after editing wiki articles directly.
 
 ## AI role boundaries
 
