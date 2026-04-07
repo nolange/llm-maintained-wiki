@@ -27,7 +27,8 @@ docs/           Design and implementation documents
 tests/
   fixtures/     mock_claude.py, config.toml, fixture responses
   test_structural.py  Unit tests (no LLM, no vault required)
-.claude/commands/     Wiki skills (wiki-log, wiki-ask, wiki-resolve, wiki-compare)
+.agents/skills/       Wiki skills (wiki-log, wiki-ask, wiki-resolve, wiki-compare)
+.claude/skills/       Symlink → ../.agents/skills (loaded by Claude Code)
 pyproject.toml
 ```
 
@@ -35,7 +36,7 @@ pyproject.toml
 
 Data lives separately at `~/wiki/` (configured in `~/.config/wiki/config.toml`).
 
-`~/wiki/.claude/commands/` is a symlink to `.claude/commands/` in this project.
+`~/wiki/.claude/skills/` is a symlink to `.agents/skills/` in this project.
 
 Vault structure:
 ```
@@ -113,12 +114,16 @@ status: draft | stable | needs-review
 
 ## Skills
 
-Skills live in `.claude/commands/` and are available in any Claude Code session opened in this project or in `~/wiki/` (symlinked).
+Skills live in `.agents/skills/` (agentskills.io format) and are available in any Claude Code session opened in this project or in `~/wiki/` (symlinked via `.claude/skills/`).
 
+**User-invocable:**
 - `/wiki-log` — dump session findings to queue/session-log/open/
 - `/wiki-ask` — answer a question using the wiki
 - `/wiki-resolve <case-file>` — interactively resolve a lint case
 - `/wiki-compare <document>` — compare an external document against the wiki; surface conflicts, gaps, and proposed wiki updates
+
+**Background (auto-loaded, not user-invocable):**
+- `wiki-context` — injects vault conventions and AI role boundaries when Claude Code is opened in a vault directory (`wiki/**`, `queue/**`, `assets/**`, `raw/**`). Ensures the AI never violates role boundaries without the user having to prompt it.
 
 ## Multi-user
 

@@ -1,4 +1,16 @@
-# /wiki-log — Dump session findings to the wiki queue
+---
+name: wiki-log
+description: >
+  Dump session findings to the wiki queue. Use at the end of a work session
+  (bug hunting, feature design, research, etc.) to capture discoveries,
+  decisions, guideline candidates, open questions, and relevant URLs worth
+  preserving. Writes to queue/session-log/open/ — does not touch wiki articles.
+compatibility: >
+  Requires a wiki vault. Vault path read from ~/.config/wiki/config.toml
+  (key: vault.path). Falls back to ~/wiki.
+disable-model-invocation: true
+allowed-tools: Read Write
+---
 
 You are in a work session (bug hunting, feature design, research, etc.). This skill captures knowledge worth keeping without interrupting the primary task.
 

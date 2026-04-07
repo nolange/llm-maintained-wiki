@@ -1,15 +1,38 @@
-# /wiki-resolve — Resolve a lint case interactively
+---
+name: wiki-resolve
+description: >
+  Resolve a lint case file produced by the Lint AI. Reads the case file,
+  loads the affected wiki articles, presents the issues to the user, and
+  applies approved fixes. Supports both direct-edit (single-user) and
+  branch+PR (multi-user) resolver modes. Use when given a lint case file
+  from queue/lint/open/.
+compatibility: >
+  Intended to be run from the vault directory (~/wiki). Vault path and
+  resolver.mode read from ~/.config/wiki/config.toml. Branch mode requires
+  git and gh CLI.
+argument-hint: [<case-file>]
+disable-model-invocation: true
+allowed-tools: Read Write Bash(git:*) Bash(gh:*)
+---
 
 Resolve a lint case file produced by the Lint AI. The user invokes this as:
 ```
-/wiki-resolve queue/lint/open/YYYY-MM-DD-<topic>.md
+/wiki-resolve [queue/lint/open/YYYY-MM-DD-<topic>.md]
 ```
+
+The case file argument is optional. If omitted, the most recent file in `queue/lint/open/` is used.
 
 ## Setup
 
-1. Read `~/.config/wiki/config.toml` to get `resolver.mode` (`direct` or `branch`) and `vault.path`.
+1. Resolve the vault root:
+   - Check if the current working directory is inside a vault: look for `wiki/_index` in the cwd or any ancestor directory. If found, use that ancestor as the vault root.
+   - Otherwise, read `vault.path` from `~/.config/wiki/config.toml`.
 
-2. Read the specified case file from `<vault>/queue/lint/open/`.
+   Then read `resolver.mode` (`direct` or `branch`) from `~/.config/wiki/config.toml`.
+
+2. Resolve the case file:
+   - If an argument was given, use it (relative to vault root if not absolute).
+   - If no argument was given, list `<vault>/queue/lint/open/`, pick the file with the latest date in its name, and tell the user which file was selected before proceeding.
 
 3. Read all articles listed in the case file's `articles:` frontmatter field.
 

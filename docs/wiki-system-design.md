@@ -278,7 +278,11 @@ back here rather than guessing.
 
 Two distinct surfaces — skills for interactive in-session use, CLI scripts for maintenance and automation.
 
-### Skills (Claude Code slash commands — available in any session)
+### Skills (agentskills.io format — available in any Claude Code session)
+
+Skills live in `.agents/skills/<name>/SKILL.md`. `.claude/skills/` is a symlink to `.agents/skills/`, which is how Claude Code discovers them. The vault at `~/wiki/` has a matching `.claude/skills/` symlink so skills are also available in sessions opened there.
+
+**User-invocable:**
 
 | Skill                       | What it does                                                                       |
 |-----------------------------|------------------------------------------------------------------------------------|
@@ -286,6 +290,12 @@ Two distinct surfaces — skills for interactive in-session use, CLI scripts for
 | `/wiki-ask "question"`      | Reads `wiki/_index` + relevant articles, answers in context                        |
 | `/wiki-resolve <case>`      | Starts interactive resolver session for a lint case                                |
 | `/wiki-compare <document>`  | Compares an external document against the wiki: conflicts, gaps, proposed updates  |
+
+**Background (auto-loaded via `paths:`, not user-invocable):**
+
+| Skill           | Trigger paths                              | What it does                                                        |
+|-----------------|--------------------------------------------|---------------------------------------------------------------------|
+| `wiki-context`  | `wiki/**`, `queue/**`, `assets/**`, `raw/**` | Injects vault conventions and AI role boundaries into the session. Ensures the AI never violates role boundaries (e.g. Session AI writing to `wiki/`) without explicit user instruction. |
 
 ### CLI Scripts (shell — croonable, terminal)
 

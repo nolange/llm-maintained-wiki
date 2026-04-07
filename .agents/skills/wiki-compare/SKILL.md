@@ -11,6 +11,9 @@ compatibility: >
   Requires a wiki vault. Vault path is read from ~/.config/wiki/config.toml
   (key: vault.path). Falls back to ~/wiki. System tools: pandoc or pdftotext
   for binary formats.
+argument-hint: <document-path>
+disable-model-invocation: true
+allowed-tools: Read Write Bash(pdftotext:*) Bash(pandoc:*) Bash(python3:*)
 ---
 
 # Wiki Compare

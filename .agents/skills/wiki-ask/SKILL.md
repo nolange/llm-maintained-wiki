@@ -1,4 +1,18 @@
-# /wiki-ask — Answer a question using the wiki
+---
+name: wiki-ask
+description: >
+  Answer a question using the personal wiki as the knowledge base. Use when
+  the user asks a factual question that may be covered in their wiki, wants
+  to look something up, or asks "what does the wiki say about X". Reads the
+  wiki index and relevant articles; cites sources inline. Does not modify
+  the wiki.
+compatibility: >
+  Requires a wiki vault. Vault inferred from CWD if inside a vault, otherwise
+  read from ~/.config/wiki/config.toml (key: vault.path), falling back to
+  ~/wiki. Override with --vault <path>.
+argument-hint: <question> [--vault <path>]
+allowed-tools: Read Write
+---
 
 Answer the user's question using the wiki as the knowledge base.
 
@@ -36,4 +50,8 @@ Format: clean markdown, suitable for filing back into the wiki as an outputs/ do
 
 ## Vault location
 
-Read vault path from `~/.config/wiki/config.toml` → `vault.path`.
+Resolve in this order:
+
+1. If the user passed `--vault <path>`, use that.
+2. Otherwise, check if the current working directory is inside a vault: look for `wiki/_index` in the cwd or any ancestor directory. If found, use that ancestor as the vault root.
+3. Otherwise, read `vault.path` from `~/.config/wiki/config.toml`. Fall back to `~/wiki` if the file is absent.

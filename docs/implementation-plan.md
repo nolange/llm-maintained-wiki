@@ -46,11 +46,14 @@ Python: PyYAML, requests (Python 3.11+)
     fixtures/
       mock_claude.py            ← fake claude executable
       responses/                ← fixture response files keyed by prompt type
+  .agents/
+    skills/
+      wiki-log/SKILL.md         ← /wiki-log skill
+      wiki-ask/SKILL.md         ← /wiki-ask skill
+      wiki-resolve/SKILL.md     ← /wiki-resolve skill
+      wiki-compare/SKILL.md     ← /wiki-compare skill
   .claude/
-    commands/
-      wiki-log.md               ← /wiki-log skill
-      wiki-ask.md               ← /wiki-ask skill
-      wiki-resolve.md           ← /wiki-resolve skill
+    skills/                     ← symlink → ../.agents/skills
   .gitignore
 ```
 
@@ -239,16 +242,16 @@ article with frontmatter and an updated `wiki/_index`.
 
 ## Phase 3 — Skills
 
-Three Claude Code slash commands. Each is a markdown file with instructions — no Python.
+Four Claude Code skills in agentskills.io format. Each is a directory under `.agents/skills/` containing a `SKILL.md` with YAML frontmatter and instructions — no Python. `.claude/skills/` is a symlink to `.agents/skills/` so Claude Code picks them up.
 
-### `/wiki-log` (`.claude/commands/wiki-log.md`)
+### `/wiki-log` (`.agents/skills/wiki-log/SKILL.md`)
 
 Instructions tell the session AI to:
 
 - Collect findings, guideline candidates, open questions from the current session
 - Write a structured entry to `queue/session-log/open/YYYY-MM-DD-<topic>.md`
 
-### `/wiki-ask "question"` (`.claude/commands/wiki-ask.md`)
+### `/wiki-ask "question"` (`.agents/skills/wiki-ask/SKILL.md`)
 
 Instructions tell the session AI to:
 
@@ -258,7 +261,7 @@ Instructions tell the session AI to:
 - Answer the question in context
 - Write substantial answers to `outputs/YYYY-MM-DD-<topic>.md`
 
-### `/wiki-resolve <case-file>` (`.claude/commands/wiki-resolve.md`)
+### `/wiki-resolve <case-file>` (`.agents/skills/wiki-resolve/SKILL.md`)
 
 Instructions tell the session AI to:
 

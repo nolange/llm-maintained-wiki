@@ -121,12 +121,16 @@ git commit -m "init: vault structure"
 
 ### 4. Link skills into the vault (optional but recommended)
 
-The Claude Code slash commands (`/wiki-log`, `/wiki-ask`, `/wiki-resolve`) are available
-when Claude Code is opened in this project directory. To also use them from `~/wiki/`:
+The skills (`/wiki-log`, `/wiki-ask`, `/wiki-resolve`, `/wiki-compare`) are available
+when Claude Code is opened in this project directory. `wiki-context` is a background skill
+that loads automatically when Claude Code is opened in a vault directory — it injects vault
+conventions and AI role boundaries into the session without any user invocation.
+
+To also use them from `~/wiki/`:
 
 ``` bash
 mkdir -p ~/wiki/.claude
-ln -s PROJ_PATH/.claude/commands ~/wiki/.claude/commands
+ln -s PROJ_PATH/.agents/skills ~/wiki/.claude/skills
 ```
 
 ---
@@ -426,4 +430,5 @@ Claude Code skills (run inside a `claude` session):
 /wiki-log                                     # capture session findings
 /wiki-ask "question"                          # answer using wiki
 /wiki-resolve queue/lint/open/<case>.md      # resolve a lint case
+# wiki-context loads automatically — no invocation needed
 ```
