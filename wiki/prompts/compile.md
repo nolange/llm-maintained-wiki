@@ -37,8 +37,9 @@ For each source file:
 - **Assign `folder:`** only if the dominant topic is unambiguous. If content spans domains, omit it and place the file at `wiki/<filename>.md`.
 - **Preserve everything**: do not summarise, compress, or drop information from source files. Every fact, value, example, command, and nuance in the source must appear in the article. You may freely merge, split, reorder, or restructure content across articles — but nothing may be lost. The wiki is the long-term record; compaction is the job of Lint/Enhance AI, not Compile AI.
 - **Preserve all links**: links in source files are content — never drop them. If the target filename matches an article in `wiki/_index`, update the link to point to the correct relative path of that article in the wiki. If the target is not yet in the wiki, keep the link as written.
-- **Cite sources**: add or maintain a `sources:` key in the YAML frontmatter listing every source file that contributed content, as Obsidian wikilinks. When merging content from multiple source files into one article, include all of them.
-- **Update relative links**: Obsidian `[[wikilinks]]` resolve by filename and need no changes. Standard markdown links (`[text](path.md)`) are path-sensitive — if you create or move an article into a subdirectory, scan all articles in this batch for markdown links pointing to it and rewrite them to the correct relative path.
+- **Cite sources**: add or maintain a `sources:` key in the YAML frontmatter listing every source file that contributed content as plain path strings. When merging content from multiple source files into one article, include all of them.
+- **Use standard markdown links in article body**: in the markdown body, always write `[display text](relative-path.md)` — never `[[wikilinks]]`. If you encounter a wikilink in a source file, convert it to a proper relative markdown link when writing the article.
+- **Update relative links**: standard markdown links (`[text](path.md)`) are path-sensitive — if you create or move an article into a subdirectory, scan all articles in this batch for markdown links pointing to it and rewrite them to the correct relative path.
 
 ### 3. Process session-log entries
 
@@ -72,6 +73,7 @@ For any asset listed under "Assets needing sidecars", write `assets/<asset-name>
 - Every article you write or update must have valid YAML frontmatter as the first block.
 - `status:` must be one of: `draft`, `stable`, `needs-review`. Default to `draft` for new articles.
 - Do not touch articles that are not part of this compile batch.
+- **Punctuation in German prose**: use `:` as the term-definition separator (e.g. `**Term**: description`), not `—`. Reserve `—` for genuine parenthetical asides.
 
 ---
 
@@ -83,7 +85,7 @@ tags: [tag1, tag2, tag3]
 folder: optional-folder-name
 status: draft
 sources:
-  - "[[raw/source-file.pdf]]"
-  - "[[raw/session-2026-04-05.md]]"
+  - 'raw/source-file.pdf'
+  - 'raw/session-2026-04-05.md'
 ---
 ```

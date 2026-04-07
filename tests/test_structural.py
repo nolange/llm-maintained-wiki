@@ -98,6 +98,25 @@ class TestFrontmatter(unittest.TestCase):
         meta, body = frontmatter.read(p)
         self.assertEqual(meta["tags"], ["test"])
         self.assertIn("World.", body)
+        # blank line after closing ---
+        self.assertIn("---\n\n#", p.read_text())
+
+    def test_normalized_blank_line_after_delimiter(self):
+        # body with no leading newline
+        result = frontmatter.normalized({"status": "draft"}, "# Body")
+        self.assertIn("---\n\n#", result)
+
+    def test_normalized_strips_leading_newlines(self):
+        # body with leading newlines gets exactly one blank line
+        result = frontmatter.normalized({"status": "draft"}, "\n\n# Body")
+        self.assertIn("---\n\n#", result)
+        self.assertNotIn("---\n\n\n", result)
+
+    def test_parse_round_trip(self):
+        text = "---\nstatus: draft\ntags:\n- foo\n---\n\n# Title\nBody."
+        meta, body = frontmatter.parse(text)
+        self.assertEqual(meta["status"], "draft")
+        self.assertEqual(frontmatter.normalized(meta, body), text)
 
     def test_read_key(self):
         p = self._tmp("---\nstatus: stable\n---\nBody.")

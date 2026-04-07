@@ -280,11 +280,12 @@ Two distinct surfaces — skills for interactive in-session use, CLI scripts for
 
 ### Skills (Claude Code slash commands — available in any session)
 
-| Skill                  | What it does                                                |
-|------------------------|-------------------------------------------------------------|
-| `/wiki-log`            | Dumps session findings to `queue/session-log/open/`         |
-| `/wiki-ask "question"` | Reads `wiki/_index` + relevant articles, answers in context |
-| `/wiki-resolve <case>` | Starts interactive resolver session for a lint case         |
+| Skill                       | What it does                                                                       |
+|-----------------------------|------------------------------------------------------------------------------------|
+| `/wiki-log`                 | Dumps session findings to `queue/session-log/open/`                                |
+| `/wiki-ask "question"`      | Reads `wiki/_index` + relevant articles, answers in context                        |
+| `/wiki-resolve <case>`      | Starts interactive resolver session for a lint case                                |
+| `/wiki-compare <document>`  | Compares an external document against the wiki: conflicts, gaps, proposed updates  |
 
 ### CLI Scripts (shell — croonable, terminal)
 

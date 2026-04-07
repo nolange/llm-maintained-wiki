@@ -58,7 +58,7 @@ status: open
 ## Recommendation
 What should be done: merge / update article X / deprecate / rewrite section Y / add cross-link
 
-If recommending a merge or move, note that standard markdown links (`[text](path.md)`) pointing to the affected articles will need to be updated; Obsidian `[[wikilinks]]` do not.
+If recommending a merge or move, note that standard markdown links (`[text](path.md)`) pointing to the affected articles will need to be updated. Article bodies must not contain `[[wikilinks]]`.
 
 ## Context for Resolver
 - What to preserve from each article

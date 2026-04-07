@@ -27,7 +27,7 @@ docs/           Design and implementation documents
 tests/
   fixtures/     mock_claude.py, config.toml, fixture responses
   test_structural.py  Unit tests (no LLM, no vault required)
-.claude/commands/     Wiki skills (wiki-log, wiki-ask, wiki-resolve)
+.claude/commands/     Wiki skills (wiki-log, wiki-ask, wiki-resolve, wiki-compare)
 pyproject.toml
 ```
 
@@ -118,6 +118,7 @@ Skills live in `.claude/commands/` and are available in any Claude Code session 
 - `/wiki-log` — dump session findings to queue/session-log/open/
 - `/wiki-ask` — answer a question using the wiki
 - `/wiki-resolve <case-file>` — interactively resolve a lint case
+- `/wiki-compare <document>` — compare an external document against the wiki; surface conflicts, gaps, and proposed wiki updates
 
 ## Multi-user
 

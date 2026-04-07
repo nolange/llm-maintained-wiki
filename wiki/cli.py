@@ -97,8 +97,8 @@ def cmd_reindex(args: argparse.Namespace, cfg: config.Config) -> None:
 # `wiki check` — structural validator (no LLM)
 # ---------------------------------------------------------------------------
 
-def _sources_to_wikilinks(sources: str | list) -> list[str]:
-    """Normalise a sources value to a list of [[...]] wikilink strings."""
+def _sources_to_plain(sources: str | list) -> list[str]:
+    """Normalise a sources value to a list of plain path strings (strip [[...]] if present)."""
     if isinstance(sources, str):
         items = [s.strip() for s in sources.split(",") if s.strip()]
     else:
@@ -106,16 +106,16 @@ def _sources_to_wikilinks(sources: str | list) -> list[str]:
     result = []
     for item in items:
         if item.startswith("[[") and item.endswith("]]"):
-            result.append(item)
+            result.append(item[2:-2])
         else:
-            result.append(f"[[{item}]]")
+            result.append(item)
     return result
 
 
 def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
     fix: bool = getattr(args, "fix", False)
     violations: list[str] = []
-    fixable: list[tuple[Path, dict, str]] = []  # (path, meta, body) for --fix
+    fixable: dict[Path, tuple[dict, str]] = {}  # path → (meta, body); deduped
 
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
@@ -132,7 +132,8 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
     for md_path in sorted(article_files):
         rel = str(md_path.relative_to(wiki_dir))
         try:
-            meta, body = frontmatter.read(md_path)
+            orig_text = md_path.read_text(encoding="utf-8")
+            meta, body = frontmatter.parse(orig_text)
         except Exception as exc:
             violations.append(f"[frontmatter] {rel}: failed to parse — {exc}")
             continue
@@ -153,30 +154,36 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
                 f"got {type(meta['status']).__name__}"
             )
 
-        # 6. sources entries must use [[...]] wikilink format
+        # sources: strip [[...]] wikilink wrapping (semantic check)
+        sources_violated = False
         sources = meta.get("sources")
         if sources is not None:
-            fixed = _sources_to_wikilinks(sources)
+            fixed = _sources_to_plain(sources)
             current = (
                 sources if isinstance(sources, list)
                 else [s.strip() for s in sources.split(",") if s.strip()]
             )
-            needs_fix = fixed != current
-            if needs_fix:
-                bad = [
-                    s for s in current
-                    if not (isinstance(s, str) and s.startswith("[[") and s.endswith("]]"))
-                ]
-                msg = (
-                    f"[sources] {rel}: {len(bad)} source(s) not wrapped in [[...]]: "
-                    + ", ".join(bad[:3])
-                    + (" ..." if len(bad) > 3 else "")
-                )
-                if fix:
-                    meta["sources"] = fixed
-                    fixable.append((md_path, meta, body))
-                else:
-                    violations.append(msg)
+            if fixed != current:
+                sources_violated = True
+                if not fix:
+                    bad = [
+                        s for s in current
+                        if isinstance(s, str) and s.startswith("[[") and s.endswith("]]")
+                    ]
+                    violations.append(
+                        f"[sources] {rel}: {len(bad)} source(s) wrapped in [[...]]: "
+                        + ", ".join(bad[:3])
+                        + (" ..." if len(bad) > 3 else "")
+                    )
+                meta["sources"] = fixed
+
+        # YAML normalisation: re-serialise and compare to original file
+        if frontmatter.normalized(meta, body) != orig_text:
+            if fix:
+                fixable[md_path] = (meta, body)
+            elif not sources_violated:
+                # suppress when sources already flagged the same file
+                violations.append(f"[frontmatter] {rel}: YAML not normalized (run --fix)")
 
     # 2. Every article in _index must exist on disk
     indexed_filenames = _parse_index_filenames(index_path)
@@ -217,7 +224,7 @@ def cmd_check(args: argparse.Namespace, cfg: config.Config) -> None:
                 )
 
     if fix and fixable:
-        for md_path, meta, body in fixable:
+        for md_path, (meta, body) in fixable.items():
             frontmatter.write(md_path, meta, body)
         print(f"Fixed {len(fixable)} article(s).")
 
@@ -264,7 +271,7 @@ def main() -> None:
         "--fix",
         action="store_true",
         default=False,
-        help="Automatically fix fixable violations (e.g. sources not wrapped in [[...]]).",
+        help="Automatically fix fixable violations (sources wrapped in [[...]], YAML not normalized).",
     )
 
     compile_p = sub.add_parser("compile", help="Compile raw/ and session-log/ into wiki articles.")

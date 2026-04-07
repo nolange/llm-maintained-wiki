@@ -74,3 +74,4 @@ If a category has no genuine findings, include the heading and write `None ident
 - Every item must be specific and actionable. If you cannot say concretely what should be done, omit the item.
 - Limit to the 10 most valuable suggestions per section — prioritise ruthlessly.
 - Do not suggest adding content to articles — that is the Compile AI's job.
+- Punctuation in German prose: use `:` as the term-definition separator (e.g. `**Term**: description`), not `—`. Reserve `—` for genuine parenthetical asides.
