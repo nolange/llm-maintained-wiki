@@ -41,7 +41,7 @@ def run(
     if config.llm_backend == "claude" and "--permission-mode" not in config.llm_args:
         extra_args = ["--permission-mode", "acceptEdits"]
 
-    cmd = [config.llm_path, *config.llm_args, *extra_args, full_prompt]
+    cmd = [config.llm_path, *config.llm_args, *extra_args, "-p", full_prompt]
 
     if dry_run:
         script = _write_dry_run_script(cmd, full_prompt, extra_args, cwd, config)
@@ -137,7 +137,7 @@ PROMPT=$(cat << 'PROMPT_EOF'
 PROMPT_EOF
 )
 
-{base_cmd} "$PROMPT"
+{base_cmd} -p "$PROMPT"
 """
     script_path.write_text(script, encoding="utf-8")
     script_path.chmod(0o755)

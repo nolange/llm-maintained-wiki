@@ -33,12 +33,12 @@ def cmd_compile(args: argparse.Namespace, cfg: config.Config) -> None:
 
 def cmd_lint(args: argparse.Namespace, cfg: config.Config) -> None:
     from .lint import lint
-    lint(cfg, dry_run=args.dry_run, max_calls=args.max_calls)
+    lint(cfg, dry_run=args.dry_run, max_calls=args.max_calls, user_prompt=args.prompt)
 
 
 def cmd_enhance(args: argparse.Namespace, cfg: config.Config) -> None:
     from .enhance import enhance
-    enhance(cfg, dry_run=args.dry_run, max_articles=args.max_articles)
+    enhance(cfg, dry_run=args.dry_run, max_articles=args.max_articles, user_prompt=args.prompt)
 
 
 def cmd_ask(args: argparse.Namespace, cfg: config.Config) -> None:
@@ -218,6 +218,13 @@ def main() -> None:
         metavar="N",
         help="Max LLM calls per run — clusters are sampled randomly (default: 5).",
     )
+    lint_p.add_argument(
+        "-p", "--prompt",
+        type=str,
+        default=None,
+        metavar="TEXT",
+        help="Additional instructions appended to the lint prompt (e.g. focus area or extra constraints).",
+    )
     _add_dry_run(lint_p)
 
     enhance_p = sub.add_parser("enhance", help="Suggest new articles, cross-links, and topic gaps.")
@@ -228,6 +235,13 @@ def main() -> None:
         dest="max_articles",
         metavar="N",
         help="Max articles included in the prompt — sampled randomly (default: 50).",
+    )
+    enhance_p.add_argument(
+        "-p", "--prompt",
+        type=str,
+        default=None,
+        metavar="TEXT",
+        help="Additional instructions appended to the enhance prompt (e.g. focus area or extra constraints).",
     )
     _add_dry_run(enhance_p)
 

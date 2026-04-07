@@ -74,7 +74,7 @@ def _open_case_clusters(vault: Path) -> set[str]:
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-def _build_lint_prompt(vault: Path, tag: str, entries: list[tuple[Path, dict, str]]) -> str:
+def _build_lint_prompt(vault: Path, tag: str, entries: list[tuple[Path, dict, str]], user_prompt: str | None = None) -> str:
     instructions = _load_prompt("lint")
     today = date.today().isoformat()
 
@@ -108,6 +108,14 @@ def _build_lint_prompt(vault: Path, tag: str, entries: list[tuple[Path, dict, st
         "If no issues are found, output only `## No issues found` and do not create any files.",
     ]
 
+    if user_prompt:
+        lines += [
+            "",
+            "## Additional user instructions",
+            "",
+            user_prompt,
+        ]
+
     return "\n".join(lines)
 
 
@@ -118,7 +126,7 @@ def _build_lint_prompt(vault: Path, tag: str, entries: list[tuple[Path, dict, st
 _DEFAULT_MAX_CALLS = 5
 
 
-def lint(cfg: Config, dry_run: bool = False, max_calls: int = _DEFAULT_MAX_CALLS) -> None:
+def lint(cfg: Config, dry_run: bool = False, max_calls: int = _DEFAULT_MAX_CALLS, user_prompt: str | None = None) -> None:
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
 
@@ -175,7 +183,7 @@ def lint(cfg: Config, dry_run: bool = False, max_calls: int = _DEFAULT_MAX_CALLS
 
     for tag, entries in sample:
         print(f"  Cluster '{tag}' ({len(entries)} article(s))...")
-        prompt = _build_lint_prompt(vault, tag, entries)
+        prompt = _build_lint_prompt(vault, tag, entries, user_prompt=user_prompt)
         llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
 
     print(f"Done. ({len(sample)} LLM call(s))")

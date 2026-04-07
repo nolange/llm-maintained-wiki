@@ -41,7 +41,7 @@ def load(config_path: Path | None = None) -> Config:
         resolver_mode=resolver.get("mode", "direct"),
         llm_backend=backend,
         llm_path=_resolve_exe(backend_cfg.get("path", "claude")),
-        llm_args=backend_cfg.get("args", ["-p"]),
+        llm_args=backend_cfg.get("args", []),
         compile_max_files=compile_cfg.get("max_files", 10),
     )
 

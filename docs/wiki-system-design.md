@@ -143,7 +143,7 @@ Link to GCC options reference, self-explanatory in context.
 
 #### Compile invocation model
 
-The compiler runs Claude CLI in agent mode (`claude -p`). It does **not** parse Claude's
+The compiler runs Claude CLI in agent mode (`claude -p <prompt>`). It does **not** parse Claude's
 output — Claude reads source files and writes wiki articles directly using its file tools.
 
 **File flow:**

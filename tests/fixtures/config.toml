@@ -12,8 +12,8 @@ backend = "claude"
 
 [claude]
 path = "tests/fixtures/mock_claude.py"
-args = ["-p"]
+args = []
 
 [copilot]
 path = "tests/fixtures/mock_claude.py"
-args = ["-p"]
+args = []

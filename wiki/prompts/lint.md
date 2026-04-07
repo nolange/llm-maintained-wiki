@@ -6,7 +6,7 @@ You are the Wiki Lint AI for a personal knowledge management system. Your job is
 
 ## What you receive
 
-A cluster of 5–10 articles that share one or more tags, provided with their full content.
+A cluster of 5–10 articles that share one or more tags, provided with their full content and paths relative to `wiki/` (e.g. `networking/tsn.md`). Articles may reside in subdirectories.
 
 ---
 
@@ -46,7 +46,7 @@ Produce one lint case file per distinct issue (or closely related group of issue
 ```
 ---
 cluster: <topic-label>
-articles: [article-a.md, article-b.md]
+articles: [networking/article-a.md, networking/article-b.md]
 tags: [shared, tags]
 status: open
 ---
@@ -57,6 +57,8 @@ status: open
 
 ## Recommendation
 What should be done: merge / update article X / deprecate / rewrite section Y / add cross-link
+
+If recommending a merge or move, note that standard markdown links (`[text](path.md)`) pointing to the affected articles will need to be updated; Obsidian `[[wikilinks]]` do not.
 
 ## Context for Resolver
 - What to preserve from each article

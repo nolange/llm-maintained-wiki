@@ -161,10 +161,10 @@ args = ["-p"]
         self.assertEqual(cfg.llm_args, ["-p"])
 
     def test_llm_backend_copilot(self):
-        p = self._cfg("[llm]\nbackend = \"copilot\"\n[copilot]\npath = \"copilot\"\nargs = [\"--autopilot\", \"--yolo\", \"-p\"]\n")
+        p = self._cfg("[llm]\nbackend = \"copilot\"\n[copilot]\npath = \"copilot\"\nargs = [\"--allow-all-tools\", \"-p\"]\n")
         cfg = config.load(p)
         self.assertEqual(cfg.llm_backend, "copilot")
-        self.assertIn("--autopilot", cfg.llm_args)
+        self.assertIn("--allow-all-tools", cfg.llm_args)
 
     def test_compile_max_files_default(self):
         p = self._cfg("[llm]\nbackend = \"claude\"\n[claude]\npath = \"claude\"\nargs = [\"-p\"]\n")

@@ -57,7 +57,7 @@ def _collect_frontmatter_summary(wiki_dir: Path, max_articles: int | None = None
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-def _build_enhance_prompt(vault: Path, frontmatter_summary: str) -> str:
+def _build_enhance_prompt(vault: Path, frontmatter_summary: str, user_prompt: str | None = None) -> str:
     instructions = _load_prompt("enhance")
     today = date.today().isoformat()
     output_path = f"outputs/enhance-{today}.md"
@@ -80,6 +80,14 @@ def _build_enhance_prompt(vault: Path, frontmatter_summary: str) -> str:
         "Use today's date in the report heading.",
     ]
 
+    if user_prompt:
+        lines += [
+            "",
+            "## Additional user instructions",
+            "",
+            user_prompt,
+        ]
+
     return "\n".join(lines)
 
 
@@ -90,7 +98,7 @@ def _build_enhance_prompt(vault: Path, frontmatter_summary: str) -> str:
 _DEFAULT_MAX_ARTICLES = 50
 
 
-def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX_ARTICLES) -> None:
+def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX_ARTICLES, user_prompt: str | None = None) -> None:
     vault = cfg.vault_path
     wiki_dir = vault / "wiki"
     index_path = wiki_dir / "_index"
@@ -114,7 +122,7 @@ def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX
         print(f"Generating enhancement report ({max_articles}/{total} articles sampled)...")
     else:
         print(f"Generating enhancement report ({total} article(s))...")
-    prompt = _build_enhance_prompt(vault, frontmatter_summary)
+    prompt = _build_enhance_prompt(vault, frontmatter_summary, user_prompt=user_prompt)
     llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
 
     if not dry_run:

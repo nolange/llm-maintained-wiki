@@ -66,7 +66,7 @@ backend = "claude"
 
 [claude]
 path = "claude"
-args = ["-p"]
+args = []
 
 [compile]
 max_files = 10            # max source files per LLM batch
@@ -81,7 +81,7 @@ backend = "copilot"
 
 [copilot]
 path = "copilot"
-args = ["--autopilot", "--max-autopilot-continues", "10", "-p"]
+args = ["--allow-all-tools"]
 ```
 
 ### 2. Initialize the vault

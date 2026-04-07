@@ -83,7 +83,7 @@ args = ["-p"]
 
 [copilot]
 path = "copilot"
-args = ["--autopilot", "--yolo", "--max-autopilot-continues", "10", "-p"]
+args = ["--allow-all-tools", "-p"]
 
 [llm]
 backend = "claude"              ← "claude" or "copilot"

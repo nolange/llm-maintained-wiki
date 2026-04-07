@@ -73,11 +73,11 @@ backend = "claude"     # or "copilot"
 
 [claude]
 path = "claude"
-args = ["-p"]
+args = []
 
 [copilot]
 path = "copilot"
-args = ["--autopilot", "--yolo", "--max-autopilot-continues", "10", "-p"]
+args = ["--allow-all-tools"]
 
 [compile]
 max_files = 10          # max source files per LLM batch (split large drops)
