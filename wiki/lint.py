@@ -184,6 +184,6 @@ def lint(cfg: Config, dry_run: bool = False, max_calls: int = _DEFAULT_MAX_CALLS
     for tag, entries in sample:
         print(f"  Cluster '{tag}' ({len(entries)} article(s))...")
         prompt = _build_lint_prompt(vault, tag, entries, user_prompt=user_prompt)
-        llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
+        llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run, task="lint")
 
     print(f"Done. ({len(sample)} LLM call(s))")

@@ -87,6 +87,10 @@ Use `scripts/wiki <command>` from the vault root. Never edit vault files manuall
 
 Always run `check --fix` after editing wiki articles directly.
 
+Per-task model overrides can be set in `~/.config/wiki/config.toml` under `[models]`
+(keys: `compile`, `lint`, `enhance`, `ask`).
+Lint benefits most from a capable model; compile can use a faster one.
+
 ## AI role boundaries
 
 | Role       | Writes to                                        | Never touches                                        |

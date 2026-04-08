@@ -70,6 +70,14 @@ args = []
 
 [compile]
 max_files = 10            # max source files per LLM batch
+
+[models]
+# Per-task model overrides — omit a key to fall back to the model in [claude] args.
+# lint is a deep analytical task; compile is broad and tolerates a faster model.
+compile  = "claude-sonnet-4-5"
+lint     = "claude-opus-4-5"
+enhance  = "claude-sonnet-4-5"
+ask      = "claude-sonnet-4-5"
 EOF
 ```
 

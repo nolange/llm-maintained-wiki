@@ -165,6 +165,19 @@ and need not be repeated). Configure in `~/.config/wiki/config.toml`:
 max_files = 10
 ```
 
+**Per-task model selection (`[models]`):**
+Each command (`compile`, `lint`, `enhance`, `ask`) passes its task name to the LLM
+invocation layer, which substitutes the `--model` flag if a matching key exists in
+`[models]`. Falls back to the model specified in `[claude]`/`[copilot]` args.
+
+``` toml
+[models]
+compile  = "claude-sonnet-4-5"   # broad writing — balanced model sufficient
+lint     = "claude-opus-4-5"     # deep analytical — use most capable model
+enhance  = "claude-sonnet-4-5"
+ask      = "claude-sonnet-4-5"
+```
+
 ### 2. Lint AI (Diagnostician)
 
 - **Reads:** wiki articles and `wiki/_index`, clustered by tags

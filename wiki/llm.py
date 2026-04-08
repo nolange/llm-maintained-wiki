@@ -23,6 +23,7 @@ def run(
     config: Config | None = None,
     cwd: Path | None = None,
     dry_run: bool = False,
+    task: str = "",
 ) -> str:
     """Call the configured LLM CLI, tee output to logs/, and return empty string.
 
@@ -30,21 +31,29 @@ def run(
     Output flows live to the terminal and is also written to <cwd>/logs/.
 
     If dry_run is True, write an executable bash script instead of running.
+
+    If task is given and config.models[task] is set, override --model in the
+    args list with the configured model for that task.
     """
     if config is None:
         config = load_config()
 
     full_prompt = f"{prompt}\n\n{context}" if context.strip() else prompt
 
+    # Apply per-task model override
+    llm_args = list(config.llm_args)
+    if task and task in config.models:
+        llm_args = _override_model(llm_args, config.models[task])
+
     # Auto-inject --permission-mode acceptEdits for claude so it can write files
     extra_args: list[str] = []
-    if config.llm_backend == "claude" and "--permission-mode" not in config.llm_args:
+    if config.llm_backend == "claude" and "--permission-mode" not in llm_args:
         extra_args = ["--permission-mode", "acceptEdits"]
 
-    cmd = [config.llm_path, *config.llm_args, *extra_args, "-p", full_prompt]
+    cmd = [config.llm_path, *llm_args, *extra_args, "-p", full_prompt]
 
     if dry_run:
-        script = _write_dry_run_script(cmd, full_prompt, extra_args, cwd, config)
+        script = _write_dry_run_script(cmd, full_prompt, extra_args, cwd, config, llm_args)
         print(f"[dry-run] script: {script}")
         return ""
 
@@ -114,6 +123,7 @@ def _write_dry_run_script(
     extra_args: list[str],
     cwd: Path | None,
     config: Config,
+    llm_args: list[str],
 ) -> Path:
     """Write a self-contained bash script with the full prompt via heredoc."""
     work_dir = cwd or Path.cwd()
@@ -122,7 +132,7 @@ def _write_dry_run_script(
     # Escape any heredoc sentinel that might appear in the prompt
     safe_prompt = prompt.replace("PROMPT_EOF", "PROMPT_E_O_F")
 
-    base_cmd = shlex.join([config.llm_path, *config.llm_args, *extra_args])
+    base_cmd = shlex.join([config.llm_path, *llm_args, *extra_args])
 
     script = f"""\
 #!/bin/sh
@@ -142,3 +152,19 @@ PROMPT_EOF
     script_path.write_text(script, encoding="utf-8")
     script_path.chmod(0o755)
     return script_path
+
+
+def _override_model(args: list[str], model: str) -> list[str]:
+    """Return a copy of args with --model replaced (or appended) with model."""
+    result = []
+    skip_next = False
+    for arg in args:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg == "--model":
+            skip_next = True
+            continue
+        result.append(arg)
+    result.extend(["--model", model])
+    return result

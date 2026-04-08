@@ -151,7 +151,7 @@ def ask(cfg: Config, question: str, dry_run: bool = False) -> None:
         print("Querying wiki (no articles matched — wiki may be empty)...")
 
     prompt = _build_ask_prompt(vault, question, article_paths, output_path)
-    llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
+    llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run, task="ask")
 
     if not dry_run and output_path.exists():
         print(f"Answer written to: {output_path}")

@@ -252,7 +252,7 @@ def compile(cfg: Config, dry_run: bool = False) -> None:
         if len(batches) > 1:
             print(f"  Batch {i}/{len(batches)}...")
         prompt = _build_agent_prompt(vault, raw_batch, sessions, assets)
-        llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
+        llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run, task="compile")
 
     if dry_run:
         _cleanup_temp(readable_raw)

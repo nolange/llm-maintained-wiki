@@ -1,7 +1,7 @@
 """Config loading for the wiki system."""
 
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 DEFAULT_CONFIG_PATH = Path("~/.config/wiki/config.toml")
@@ -16,6 +16,7 @@ class Config:
     llm_path: str
     llm_args: list[str]
     compile_max_files: int = 10
+    models: dict[str, str] = field(default_factory=dict)
 
 
 def load(config_path: Path | None = None) -> Config:
@@ -43,6 +44,7 @@ def load(config_path: Path | None = None) -> Config:
         llm_path=_resolve_exe(backend_cfg.get("path", "claude")),
         llm_args=backend_cfg.get("args", []),
         compile_max_files=compile_cfg.get("max_files", 10),
+        models=data.get("models", {}),
     )
 
 

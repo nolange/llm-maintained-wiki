@@ -123,7 +123,7 @@ def enhance(cfg: Config, dry_run: bool = False, max_articles: int = _DEFAULT_MAX
     else:
         print(f"Generating enhancement report ({total} article(s))...")
     prompt = _build_enhance_prompt(vault, frontmatter_summary, user_prompt=user_prompt)
-    llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run)
+    llm_run(prompt, config=cfg, cwd=vault, dry_run=dry_run, task="enhance")
 
     if not dry_run:
         if output_path.exists():
