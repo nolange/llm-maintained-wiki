@@ -11,7 +11,7 @@ compatibility: >
   resolver.mode read from ~/.config/wiki/config.toml. Branch mode requires git.
 argument-hint: [<case-file>]
 disable-model-invocation: true
-allowed-tools: Read Write Bash(git *)
+allowed-tools: Read Write Bash(git *) Bash(pandoc *)
 ---
 
 Resolve a lint case file produced by the Lint AI. The user invokes this as:
@@ -50,6 +50,9 @@ When editing articles:
 - Never change the `folder:` frontmatter key if the user set it
 - Keep changes focused on what the case file identifies — do not refactor unrelated content
 - **Always use standard markdown links**: `[display text](relative-path.md)` — never `[[wikilinks]]`
+- **German prose punctuation**: use `:` as the term-definition separator (e.g. `**Term**: description`), not `—`. Reserve `—` for genuine parenthetical asides.
+- **GFM and line length**: follow the markdown format rules in `AGENTS.md` — fenced blocks, pipe tables, blank lines before block constructs, lines under 100 characters with sentence-boundary breaks preferred.
+- After edits, offer to run the pandoc normalisation command from `AGENTS.md` if the user wants to clean up formatting.
 
 If a contradiction cannot be resolved without more information:
 - Add an `## Unresolved` section to the case file describing exactly what needs human input

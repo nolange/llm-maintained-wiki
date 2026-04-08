@@ -67,6 +67,8 @@ Review the current session for anything worth preserving:
 - Only write to `queue/session-log/open/`
 - If `source-files` is empty, omit the key rather than leaving it as an empty list
 - Tags should be specific (prefer `tsn-scheduling` over `tsn`)
+- Use standard markdown links if referencing files: `[display text](relative-path.md)` — never `[[wikilinks]]`
+- Write GFM: fenced code blocks, pipe tables, straight quotes, blank lines before block constructs
 
 ## After writing
 

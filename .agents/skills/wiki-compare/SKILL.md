@@ -98,7 +98,8 @@ After the report, list proposed wiki edits:
 Ask the user which edits to approve. For each approved edit: read the article,
 make the targeted change, write it back. Do not rewrite surrounding content.
 
-If `_index` tags need updating for a changed article, update them too.
+After applying edits, run `scripts/wiki check --fix` to normalise frontmatter.
+Do **not** edit `wiki/_index` directly — it is maintained only by `scripts/wiki compile`.
 
 ## Rules
 
@@ -106,3 +107,7 @@ If `_index` tags need updating for a changed article, update them too.
 - Make surgical edits only — never rewrite a whole article.
 - Do not modify the external document unless explicitly asked.
 - If either source is ambiguous on a point, say so rather than guessing.
+- **Always use standard markdown links** in article edits: `[display text](relative-path.md)` — never `[[wikilinks]]`.
+- **German prose punctuation**: use `:` as the term-definition separator (e.g. `**Term**: description`), not `—`. Reserve `—` for genuine parenthetical asides.
+- **GFM and line length**: follow the markdown format rules in `AGENTS.md` — fenced blocks, pipe tables, blank lines before block constructs, lines under 100 characters with sentence-boundary breaks preferred.
+- After applying edits, offer to run the pandoc normalisation command from `AGENTS.md` if the user wants to clean up formatting.

@@ -36,6 +36,15 @@ For each source file:
 - **Assign tags**: be specific. Prefer `tsn-credit-shaper` over `tsn`, prefer `linux-tc-taprio` over `linux`. Lowercase-kebab-case.
 - **Assign `folder:`** only if the dominant topic is unambiguous. If content spans domains, omit it and place the file at `wiki/<filename>.md`.
 - **Preserve everything**: do not summarise, compress, or drop information from source files. Every fact, value, example, command, and nuance in the source must appear in the article. You may freely merge, split, reorder, or restructure content across articles — but nothing may be lost. The wiki is the long-term record; compaction is the job of Lint/Enhance AI, not Compile AI.
+- **Preserve list formatting**: markdown supports *loose lists* — list items that contain blank lines and indented continuation paragraphs. A blank line followed by text indented to the list-item level is a second paragraph *inside* that item, not a new element. Make a strong effort to reproduce this paragraph structure rather than collapsing continuation paragraphs inline into the preceding sentence. Merging is acceptable when the result reads naturally and loses no information, but the bar for collapsing is high.
+- **Line length**: keep prose lines under 100 characters. A sentence boundary is always a valid break point — breaking earlier than 100 is fine and preferred over breaking mid-sentence. Only break mid-sentence at a clause boundary if the sentence itself exceeds 100 characters. Do not reflow lines you are not otherwise changing.
+- **Markdown flavour — GFM**: write GitHub Flavored Markdown throughout.
+  - Code blocks: always use fenced blocks, never indented code blocks.
+  - Fenced blocks inside list items: indent the fence to the list item's content column (the same indentation as continuation paragraphs in that item). A fence at a lower column breaks out of the list; a fence at the correct indentation stays part of it.
+  - Tables: always pipe tables.
+  - Quotes: straight/ASCII only — no curly `""` or `''`.
+  - Math: `$…$` inline, `$$…$$` display.
+  - Always place a blank line before a list, table, fenced block, or heading — many parsers require it and omitting it is a common source of broken rendering.
 - **Preserve all links**: links in source files are content — never drop them. If the target filename matches an article in `wiki/_index`, update the link to point to the correct relative path of that article in the wiki. If the target is not yet in the wiki, keep the link as written.
 - **Cite sources**: add or maintain a `sources:` key in the YAML frontmatter listing every source file that contributed content as plain path strings. When merging content from multiple source files into one article, include all of them.
 - **Use standard markdown links in article body**: in the markdown body, always write `[display text](relative-path.md)` — never `[[wikilinks]]`. If you encounter a wikilink in a source file, convert it to a proper relative markdown link when writing the article.

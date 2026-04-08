@@ -37,6 +37,41 @@ status: draft | stable | needs-review
 - Grep for relationships; do not add `referenced-by` metadata
 - **Always use standard markdown links** in article bodies: `[display text](relative-path.md)` — never `[[wikilinks]]`
 
+## Markdown format
+
+All wiki articles use **GitHub Flavored Markdown (GFM)**:
+
+- Fenced code blocks (`` ``` `` or `~~~~`), never indented code blocks.
+- Fenced blocks inside list items must be indented to the list item's content column — a fence at column 0 breaks out of the list.
+- Pipe tables.
+- Straight/ASCII quotes — no curly `""` or `''`.
+- Math: `$…$` inline, `$$…$$` display.
+- Always a blank line before lists, tables, fenced blocks, and headings.
+- Lines under 100 characters; prefer breaking at a sentence boundary.
+- **German prose punctuation**: use `:` as the term-definition separator (e.g. `**Term**: description`), not `—`. Reserve `—` for genuine parenthetical asides.
+- **Loose lists**: a blank line followed by text indented to the list-item content column is a continuation paragraph inside that item — preserve this structure rather than collapsing it inline.
+
+### Pandoc normalisation
+
+Run pandoc on an article to check for structural issues (tables not parsed as
+tables, lists broken, etc.) or to normalise formatting in-place:
+
+```bash
+# Check — inspect output on stdout
+pandoc --wrap=preserve -s \
+  -f markdown-smart+yaml_metadata_block \
+  -t gfm+tex_math_dollars+yaml_metadata_block \
+  <file>
+
+# Normalise in-place
+pandoc --wrap=preserve -s \
+  -f markdown-smart+yaml_metadata_block \
+  -t gfm+tex_math_dollars+yaml_metadata_block \
+  <file> -o <file>
+```
+
+Offer to run this after editing articles, or whenever a formatting problem is suspected.
+
 ## Wiki CLI
 
 Use `scripts/wiki <command>` from the vault root. Never edit vault files manually when a CLI command does the job.
