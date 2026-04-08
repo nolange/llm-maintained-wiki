@@ -35,6 +35,7 @@ status: draft | stable | needs-review
 - Resolver writes to `wiki/` articles and moves case files — nothing else
 - Do not reconstruct wiki articles from `raw/` — the wiki is the source of truth
 - Grep for relationships; do not add `referenced-by` metadata
+- **Always use standard markdown links** in article bodies: `[display text](relative-path.md)` — never `[[wikilinks]]`
 
 ## Wiki CLI
 

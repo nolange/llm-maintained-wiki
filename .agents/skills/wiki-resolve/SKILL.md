@@ -49,6 +49,7 @@ When editing articles:
 - Update `status:` to `stable` in frontmatter for articles that are fully resolved
 - Never change the `folder:` frontmatter key if the user set it
 - Keep changes focused on what the case file identifies — do not refactor unrelated content
+- **Always use standard markdown links**: `[display text](relative-path.md)` — never `[[wikilinks]]`
 
 If a contradiction cannot be resolved without more information:
 - Add an `## Unresolved` section to the case file describing exactly what needs human input
